@@ -96,8 +96,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
       )}
 
       {/* HERO SECTION */}
-      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative min-h-[60vh] flex items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center w-full">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative pt-[50px] pb-12 lg:pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
           {/* Left Hero Content */}
           <motion.div 
