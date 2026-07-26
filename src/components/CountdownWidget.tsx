@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Sparkles, Calendar, Heart } from 'lucide-react';
 
-export const downWidget: React.FC = () => {
+export const CountdownWidget: React.FC = () => {
   const { t } = useLanguage();
 
   // Target Date for Shree Ganesh Chaturthi 2026 (September 14, 2026)
