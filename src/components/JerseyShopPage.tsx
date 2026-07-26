@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, CheckCircle, Loader2, Plus, Trash2 } from 'lucide-react';
-import { JerseyBooking } from '../types';
+import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users } from 'lucide-react';
+import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
 
-interface JerseyBookingPanelProps {
+interface JerseyShopPageProps {
   bookings?: JerseyBooking[];
+  setActiveTab: (tab: NavTab) => void;
 }
 
-export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings = [] }) => {
+export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], setActiveTab }) => {
   const { t } = useLanguage();
   
   const [formData, setFormData] = useState({
@@ -96,13 +97,20 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
 
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div className="text-center md:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#FF9933]/30 text-xs font-bold text-[#FF9933] shadow-2xs mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-100 text-[#FF9933] font-bold text-sm mb-4">
             <Shirt className="w-4 h-4" />
             <span>{t('२०२६ उत्सव विशेष', '2026 Festival Special')}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] tracking-tight">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-[#111111] tracking-tight mb-4">
             {t('मंडळाची अधिकृत जर्सी', 'Mandal Official Jersey')}
           </h2>
+          <button 
+            onClick={() => setActiveTab('jersey-bookings')}
+            className="mt-4 px-6 py-2.5 rounded-xl bg-white border border-gray-200 shadow-sm text-gray-800 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors inline-flex items-center gap-2"
+          >
+            <Users className="w-5 h-5 text-[#FF9933]" />
+            {t('बुक केलेल्या जर्सी पहा', 'View Booked Jerseys')}
+          </button>
         </div>
       </div>
 

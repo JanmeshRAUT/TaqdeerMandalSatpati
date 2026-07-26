@@ -121,4 +121,5 @@ export type NavTab =
   | 'social' 
   | 'contact' 
   | 'admin'
-  | 'jersey-bookings';
+  | 'jersey-bookings'
+  | 'jersey-shop';

@@ -13,6 +13,7 @@ import { SocialActivitiesSection } from './components/SocialActivitiesSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminPanel } from './components/AdminPanel';
 import { JerseyBookingsView } from './components/JerseyBookingsView';
+import { JerseyShopPage } from './components/JerseyShopPage';
 
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -143,6 +144,13 @@ function AppContent() {
 
         {activeTab === 'jersey-bookings' && (
           <JerseyBookingsView 
+            bookings={jerseyBookings} 
+            setActiveTab={setActiveTab} 
+          />
+        )}
+
+        {activeTab === 'jersey-shop' && (
+          <JerseyShopPage 
             bookings={jerseyBookings} 
             setActiveTab={setActiveTab} 
           />

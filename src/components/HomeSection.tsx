@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { NavTab, Announcement, JerseyBooking } from '../types';
 import { CountdownWidget } from './CountdownWidget';
-import { JerseyBookingPanel } from './JerseyBookingPanel';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   History, Image as ImageIcon, Sparkles, HeartHandshake, 
@@ -269,15 +268,44 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
         <CountdownWidget />
       </motion.div>
 
-      {/* JERSEY BOOKING PANEL */}
+      {/* JERSEY SHOP BANNER */}
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24"
-        id="jersey-booking"
       >
-        <JerseyBookingPanel bookings={jerseyBookings} />
+        <div className="bg-gradient-to-r from-gray-900 via-[#1a1a1a] to-gray-900 rounded-3xl p-8 sm:p-12 text-center text-white shadow-2xl relative overflow-hidden border border-gray-800">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF9933]/10 rounded-full blur-3xl pointer-events-none transform translate-x-1/2 -translate-y-1/2" />
+          
+          <div className="relative z-10 space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-[#FF9933] text-sm font-bold backdrop-blur-sm">
+              <Shirt className="w-4 h-4" />
+              <span>{t('नवीन कलेक्शन', 'New Collection')}</span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-marathi">
+              {t('तकदीर मंडळ अधिकृत जर्सी २०२६', 'Taqdeer Mandal Official Jersey 2026')}
+            </h2>
+            
+            <p className="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto font-marathi">
+              {t('आगामी गणेशोत्सवासाठी खास डिझाइन केलेली जर्सी आजच बुक करा.', 'Pre-book our exclusively designed Taqdeer Mitra Mandal jersey for the upcoming festival.')}
+            </p>
+
+            <button 
+              onClick={() => {
+                setActiveTab('jersey-shop');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="mt-4 px-8 py-4 rounded-xl bg-gradient-to-r from-[#FF9933] to-[#FF8000] text-white font-bold text-lg hover:shadow-[0_0_30px_rgba(255,153,51,0.4)] transition-all flex items-center justify-center gap-2 mx-auto"
+            >
+              <Shirt className="w-5 h-5" />
+              {t('जर्सी शॉपला भेट द्या', 'Visit Jersey Shop')}
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </motion.div>
 
       {/* STATS METRICS FEATURE BAR */}

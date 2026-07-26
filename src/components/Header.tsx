@@ -4,7 +4,7 @@ import { NavTab } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Menu, X, Globe, ShieldCheck, HeartHandshake, Calendar, 
-  Image as ImageIcon, Users, UserCheck, History, Home, PhoneCall 
+  Image as ImageIcon, Users, UserCheck, History, Home, PhoneCall, Shirt 
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
 
   const navItems: { id: NavTab; mr: string; en: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'home', mr: 'मुख्यपृष्ठ', en: 'Home', icon: Home },
+    { id: 'jersey-shop', mr: 'जर्सी शॉप', en: 'Jersey Shop', icon: Shirt },
     { id: 'history', mr: 'इतिहास', en: 'History', icon: History },
     { id: 'committee', mr: 'कार्यकारिणी', en: 'Committee', icon: ShieldCheck },
     { id: 'members', mr: 'सदस्य', en: 'Members', icon: UserCheck },
