@@ -39,14 +39,14 @@ function AppContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const [announcements, setAnnouncements] = useState<any[]>(INITIAL_ANNOUNCEMENTS);
-  const [committee, setCommittee] = useState<any[]>(INITIAL_COMMITTEE);
-  const [members, setMembers] = useState<any[]>(INITIAL_MEMBERS);
-  const [gallery, setGallery] = useState<any[]>(INITIAL_GALLERY);
-  const [events, setEvents] = useState<any[]>(INITIAL_EVENTS);
-  const [milestones, setMilestones] = useState<any[]>(INITIAL_MILESTONES);
-  const [activities, setActivities] = useState<any[]>(INITIAL_SOCIAL_ACTIVITIES);
-  const [sponsors, setSponsors] = useState<any[]>(INITIAL_SPONSORS);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [committee, setCommittee] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [gallery, setGallery] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [sponsors, setSponsors] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
