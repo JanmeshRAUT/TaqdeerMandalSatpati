@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, Download, Phone } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
 
 interface JerseyShopPageProps {
@@ -99,6 +100,25 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
       setError(err.message || t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in booking. Please try again.'));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const downloadTicket = async () => {
+    const ticketElement = document.getElementById('booking-ticket');
+    if (!ticketElement) return;
+    
+    try {
+      const canvas = await html2canvas(ticketElement, {
+        scale: 2, // Higher quality
+        backgroundColor: '#ffffff'
+      });
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Taqdeer_Jersey_Ticket_${successData?.id?.slice(-6) || 'Booking'}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Failed to download ticket', err);
     }
   };
 
@@ -200,7 +220,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
 
               <div className="flex gap-4 w-full max-w-md">
                 <button
-                  onClick={() => window.print()}
+                  onClick={downloadTicket}
                   className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
