@@ -109,7 +109,8 @@ const JerseyBookingSchema = new Schema({
   address: { type: String, required: true },
   phone: { type: String, required: true },
   items: [JerseyBookingItemSchema],
-  bookingDate: { type: String, required: true }
+  bookingDate: { type: String, required: true },
+  status: { type: String, default: 'Pending' } // 'Pending' or 'Verified'
 });
 
 export const CommitteeMember = mongoose.model('CommitteeMember', CommitteeMemberSchema);

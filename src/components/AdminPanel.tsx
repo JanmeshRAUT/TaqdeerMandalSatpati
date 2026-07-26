@@ -180,6 +180,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
+  const handleToggleJerseyBookingStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'Pending' ? 'Verified' : 'Pending';
+    try {
+      const res = await fetch(`/api/jersey-bookings/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setJerseyBookings(jerseyBookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
+        showToast('स्थिती अद्ययावत केली (Status Updated)');
+      }
+    } catch (err) {
+      showToast('त्रुटी (Error)'); console.error(err);
+    }
+  };
+
   // Add or Edit Committee Member
   const handleAddCommittee = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1209,15 +1226,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('पत्ता', 'Address')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('फोन', 'Phone')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('प्रमाण', 'Qty')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('साईझ', 'Size')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('स्लीव्ह', 'Sleeve')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-center">{t('स्थिती', 'Status')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {jerseyBookings
-                    .flatMap(b => (b.items || []).map(i => ({ ...i, bookingId: b.id, name: b.name, address: b.address })))
+                    .flatMap(b => (b.items || []).map(i => ({ ...i, bookingId: b.id, name: b.name, address: b.address, phone: b.phone, status: b.status || 'Pending' })))
                     .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
                     .filter(b => bookingSizeFilter === 'all' || b.size === Number(bookingSizeFilter))
                     .sort((a, b) => bookingSort === 'asc' ? a.size - b.size : b.size - a.size)
@@ -1225,9 +1244,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
                       <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
+                      <td className="p-4 text-sm text-gray-800 font-bold">{booking.phone}</td>
                       <td className="p-4 text-sm text-gray-900 text-center font-bold">{booking.quantity}</td>
                       <td className="p-4 text-sm font-bold text-[#FF9933]">{booking.size}</td>
                       <td className="p-4 text-sm text-gray-600">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => handleToggleJerseyBookingStatus(booking.bookingId, booking.status)}
+                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm transition-colors cursor-pointer ${
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          }`}
+                        >
+                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                        </button>
+                      </td>
                       <td className="p-4 text-right">
                         <button
                           onClick={() => handleDeleteJerseyBooking(booking.bookingId)}

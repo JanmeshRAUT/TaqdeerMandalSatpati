@@ -22,7 +22,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
       name: booking.name,
       phone: booking.phone,
       address: booking.address,
-      bookingDate: booking.bookingDate
+      bookingDate: booking.bookingDate,
+      status: booking.status || 'Pending'
     }))
   );
 
@@ -112,6 +113,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-28 text-center">{t('स्थिती', 'Status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -128,11 +130,20 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                           {booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}
                         </span>
                       </td>
+                      <td className="p-4 sm:p-5 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          }`}
+                        >
+                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                        </span>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center">
+                    <td colSpan={7} className="p-12 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-400">
                         <Shirt className="w-12 h-12 mb-4 opacity-20" />
                         <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
