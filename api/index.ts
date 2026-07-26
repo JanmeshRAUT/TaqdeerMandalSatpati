@@ -3,7 +3,6 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import Razorpay from 'razorpay';
 import connectDB from './config/db.js';
 import {
   Announcement, CommitteeMember, DirectoryMember, GalleryItem,
@@ -55,30 +54,6 @@ const seedDatabase = async () => {
 seedDatabase();
 
 // --- API Routes ---
-
-// Razorpay Initialization
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummykeyid123',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummysecretkey456',
-});
-
-// Create Razorpay Order
-app.post('/api/create-razorpay-order', async (req, res) => {
-  try {
-    const { amount, currency = 'INR', receipt = 'receipt_123' } = req.body;
-    const options = {
-      amount: amount * 100, // amount in smallest currency unit (paise for INR)
-      currency,
-      receipt
-    };
-    
-    const order = await razorpay.orders.create(options);
-    res.json(order);
-  } catch (error: any) {
-    console.error("Razorpay error:", error);
-    res.status(500).json({ message: 'Error creating razorpay order', error });
-  }
-});
 
 // Image Upload Route
 app.post('/api/upload', upload.single('image'), (req, res) => {

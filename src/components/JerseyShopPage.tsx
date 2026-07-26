@@ -1,25 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, ShieldCheck, Download, MapPin } from 'lucide-react';
+import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, Download, Phone } from 'lucide-react';
 import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
-
-// Add Razorpay to window object types
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
-const loadScript = (src: string) => {
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 interface JerseyShopPageProps {
   bookings?: JerseyBooking[];
@@ -29,10 +12,7 @@ interface JerseyShopPageProps {
 export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], setActiveTab }) => {
   const { t } = useLanguage();
   
-  const [formData, setFormData] = useState({
-    name: '',
-    address: ''
-  });
+  const [formData, setFormData] = useState({ name: '', address: '', phone: '' });
   const [items, setItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
   const [currentItem, setCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +59,10 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
       setError(t('कृपया तुमचा पत्ता टाका.', 'Please enter your address.'));
       return;
     }
+    if (!formData.phone.trim() || formData.phone.length < 10) {
+      setError(t('कृपया वैध फोन नंबर टाका.', 'Please enter a valid phone number.'));
+      return;
+    }
     if (items.length === 0) {
       setError(t('कृपया किमान एक जर्सी जोडा.', 'Please add at least one jersey.'));
       return;
@@ -88,84 +72,32 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
     setError('');
 
     try {
-      // 1. Load Razorpay Script
-      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
-      if (!res) {
-        throw new Error('Razorpay SDK failed to load. Are you online?');
-      }
-
-      // 2. Create Order on Backend
-      const orderResponse = await fetch('/api/create-razorpay-order', {
+      const bookingId = Date.now().toString();
+      const bookingResponse = await fetch('/api/jersey-bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: 10 }), // 10 Rupees Registration Fee
+        body: JSON.stringify({
+          id: bookingId,
+          name: formData.name.trim(),
+          address: formData.address.trim(),
+          phone: formData.phone.trim(),
+          items: items,
+          bookingDate: new Date().toISOString()
+        })
       });
 
-      if (!orderResponse.ok) {
-        throw new Error('Failed to create payment order');
-      }
-
-      const orderData = await orderResponse.json();
-
-      // 3. Initialize Razorpay options
-      const options = {
-        key: 'rzp_test_dummykeyid123', // In production, this should come from env or backend
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'Taqdeer Mitra Mandal',
-        description: 'Jersey Registration Fee',
-        order_id: orderData.id,
-        handler: async function (response: any) {
-          try {
-            // 4. On successful payment, save booking to database
-            const bookingId = Date.now().toString();
-            const bookingResponse = await fetch('/api/jersey-bookings', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                id: bookingId,
-                name: formData.name.trim(),
-                address: formData.address.trim(),
-                items: items,
-                bookingDate: new Date().toISOString(),
-                paymentId: response.razorpay_payment_id,
-                paymentStatus: 'Success'
-              })
-            });
-
-            if (!bookingResponse.ok) throw new Error('Failed to submit booking after payment');
-            
-            setSuccessData({
-              id: bookingId,
-              paymentId: response.razorpay_payment_id,
-              name: formData.name.trim(),
-              address: formData.address.trim(),
-              items: items
-            });
-          } catch (err) {
-            setError(t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in saving booking after payment.'));
-          } finally {
-            setIsSubmitting(false);
-          }
-        },
-        prefill: {
-          name: formData.name,
-        },
-        theme: {
-          color: '#FF9933'
-        },
-        modal: {
-          ondismiss: function() {
-            setIsSubmitting(false);
-          }
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-
+      if (!bookingResponse.ok) throw new Error('Failed to submit booking');
+      
+      setSuccessData({
+        id: bookingId,
+        name: formData.name.trim(),
+        address: formData.address.trim(),
+        phone: formData.phone.trim(),
+        items: items
+      });
     } catch (err: any) {
       setError(err.message || t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in booking. Please try again.'));
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -249,23 +181,19 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                  <div className="pt-4 border-t border-gray-100">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('पेमेंट आयडी', 'Payment ID')}</p>
-                      <p className="text-xs font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded mt-1">{successData.paymentId}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('नोंदणी शुल्क', 'Reg Fee')}</p>
-                      <p className="text-xl font-black text-[#FF9933]">₹10</p>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('नोंदणीकृत फोन', 'Registered Phone')}</p>
+                      <p className="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-2 rounded-lg mt-1 inline-block">{successData.phone}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Bottom Perforation */}
-                <div className="bg-gray-50 p-4 border-t-4 border-dashed border-gray-200 text-center relative">
+                <div className="bg-orange-50 p-4 border-t-4 border-dashed border-gray-200 text-center relative">
                   <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-8 h-8 bg-[#FAF8F5] rounded-full"></div>
-                  <p className="text-xs text-gray-500 font-bold max-w-[200px] mx-auto">
-                    {t('कृपया तुमची जर्सी घेण्यासाठी हे तिकीट दाखवा.', 'Please present this ticket to collect your jersey.')}
+                  <p className="text-xs text-orange-800 font-bold max-w-[250px] mx-auto">
+                    {t('लवकरच मंडळाकडून तुमच्या फोनवर बुकिंग कन्फर्मेशनसाठी कॉल येईल.', 'A Mandal admin will call you shortly on your registered number to confirm this booking.')}
                   </p>
                 </div>
               </div>
@@ -273,7 +201,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
               <div className="flex gap-4 w-full max-w-md">
                 <button
                   onClick={() => window.print()}
-                  className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-lg"
+                  className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   {t('तिकीट डाउनलोड करा', 'Save Ticket')}
@@ -281,11 +209,11 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                 <button
                   onClick={() => {
                     setSuccessData(null);
-                    setFormData({ name: '', address: '' });
+                    setFormData({ name: '', address: '', phone: '' });
                     setItems([]);
                     setCheckoutStep('product');
                   }}
-                  className="flex-1 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   {t('आणखी एक बुक करा', 'Book Another')}
                 </button>
@@ -475,12 +403,6 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                         </div>
                       ))}
                     </div>
-                    
-                    {/* Registration Fee */}
-                    <div className="flex justify-between items-center border-t border-orange-200 pt-3 mt-2 text-sm font-bold text-gray-800">
-                      <span>{t('नोंदणी शुल्क', 'Registration Fee')}</span>
-                      <span className="text-[#FF9933]">₹10</span>
-                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -500,6 +422,27 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                         className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 font-medium"
                         placeholder={t('तुमचे नाव एंटर करा', 'Enter your name')}
                       />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-bold text-gray-700">
+                        {t('फोन नंबर', 'Phone Number')} <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="tel"
+                          required
+                          maxLength={10}
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 font-medium"
+                          placeholder={t('१०-अंकी फोन नंबर', '10-digit phone number')}
+                        />
+                      </div>
+                      <p className="text-xs text-red-500 font-bold mt-1">
+                        {t('टीप: खोट्या बुकिंग रद्द केल्या जातील. आमचे मंडळ सदस्य खात्री करण्यासाठी या नंबरवर कॉल करतील.', 'Admin will call this number to verify. Fake bookings will be deleted.')}
+                      </p>
                     </div>
 
                     <div className="space-y-1.5">
@@ -532,8 +475,8 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                       <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
                       <>
-                        <ShieldCheck className="w-6 h-6 text-[#FF9933]" />
-                        <span>{t('₹10 सुरक्षित पेमेंट करा', 'Pay ₹10 Securely')}</span>
+                        <CheckCircle className="w-6 h-6 text-[#FF9933]" />
+                        <span>{t('ऑर्डर कन्फर्म करा', 'Confirm Order')}</span>
                       </>
                     )}
                   </motion.button>

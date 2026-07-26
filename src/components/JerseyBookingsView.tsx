@@ -20,6 +20,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
       ...item,
       bookingId: booking.id,
       name: booking.name,
+      phone: booking.phone,
       address: booking.address,
       bookingDate: booking.bookingDate
     }))
@@ -107,6 +108,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('फोन', 'Phone')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
@@ -118,6 +120,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                     <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
+                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-800">{booking.phone}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
@@ -129,7 +132,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-12 text-center">
+                    <td colSpan={6} className="p-12 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-400">
                         <Shirt className="w-12 h-12 mb-4 opacity-20" />
                         <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>

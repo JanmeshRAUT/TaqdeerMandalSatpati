@@ -84,7 +84,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newEvent, setNewEvent] = useState({ titleMr: '', titleEn: '', date: '2026-09-14', timeMr: 'सकाळी ८.०० वा.', timeEn: '8:00 AM', categoryMr: 'आरती', categoryEn: 'Aarti', locationMr: 'सातपाटी', locationEn: 'Satpati', isImportant: false });
 
   // Jersey Booking State
-  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '' });
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '' });
   const [newJerseyItems, setNewJerseyItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
   const [newJerseyCurrentItem, setNewJerseyCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [bookingSearch, setBookingSearch] = useState('');
@@ -158,6 +158,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       id: Date.now().toString(),
       name: newJerseyBooking.name.trim(),
       address: newJerseyBooking.address.trim(),
+      phone: newJerseyBooking.phone.trim(),
       items: newJerseyItems,
       bookingDate: new Date().toISOString()
     };
@@ -165,7 +166,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const res = await fetch('/api/jersey-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
-      setNewJerseyBooking({ name: '', address: '' });
+      setNewJerseyBooking({ name: '', address: '', phone: '' });
       setNewJerseyItems([]);
       showToast('जर्सी बुकिंग जोडली (Booking Added)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -1082,6 +1083,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   required
                   value={newJerseyBooking.address}
                   onChange={(e) => setNewJerseyBooking({...newJerseyBooking, address: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-semibold mb-1">फोन (Phone)</label>
+                <input
+                  type="text"
+                  required
+                  value={newJerseyBooking.phone}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, phone: e.target.value})}
                   className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
                 />
               </div>
