@@ -110,7 +110,8 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
     try {
       const canvas = await html2canvas(ticketElement, {
         scale: 2, // Higher quality
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        useCORS: true
       });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
