@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users } from 'lucide-react';
+import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, ShieldCheck } from 'lucide-react';
 import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
+
+// Add Razorpay to window object types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const loadScript = (src: string) => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 interface JerseyShopPageProps {
   bookings?: JerseyBooking[];
@@ -71,28 +88,77 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
     setError('');
 
     try {
-      const response = await fetch('/api/jersey-bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: Date.now().toString(),
-          name: formData.name.trim(),
-          address: formData.address.trim(),
-          items: items,
-          bookingDate: new Date().toISOString()
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit booking');
+      // 1. Load Razorpay Script
+      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      if (!res) {
+        throw new Error('Razorpay SDK failed to load. Are you online?');
       }
 
-      setIsSuccess(true);
-    } catch (err) {
-      setError(t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in booking. Please try again.'));
-    } finally {
+      // 2. Create Order on Backend
+      const orderResponse = await fetch('/api/create-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 10 }), // 10 Rupees Registration Fee
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create payment order');
+      }
+
+      const orderData = await orderResponse.json();
+
+      // 3. Initialize Razorpay options
+      const options = {
+        key: 'rzp_test_dummykeyid123', // In production, this should come from env or backend
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Taqdeer Mitra Mandal',
+        description: 'Jersey Registration Fee',
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            // 4. On successful payment, save booking to database
+            const bookingResponse = await fetch('/api/jersey-bookings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: Date.now().toString(),
+                name: formData.name.trim(),
+                address: formData.address.trim(),
+                items: items,
+                bookingDate: new Date().toISOString(),
+                paymentId: response.razorpay_payment_id,
+                paymentStatus: 'Success'
+              })
+            });
+
+            if (!bookingResponse.ok) throw new Error('Failed to submit booking after payment');
+            
+            setIsSuccess(true);
+          } catch (err) {
+            setError(t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in saving booking after payment.'));
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: formData.name,
+        },
+        theme: {
+          color: '#FF9933'
+        },
+        modal: {
+          ondismiss: function() {
+            setIsSubmitting(false);
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (err: any) {
+      setError(err.message || t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in booking. Please try again.'));
       setIsSubmitting(false);
     }
   };
@@ -393,8 +459,8 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                       <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
                       <>
-                        <CheckCircle className="w-6 h-6 text-[#FF9933]" />
-                        <span>{t('ऑर्डर कन्फर्म करा', 'Confirm Order')}</span>
+                        <ShieldCheck className="w-6 h-6 text-[#FF9933]" />
+                        <span>{t('₹10 सुरक्षित पेमेंट करा', 'Pay ₹10 Securely')}</span>
                       </>
                     )}
                   </motion.button>

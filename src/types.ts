@@ -109,6 +109,8 @@ export interface JerseyBooking {
   address: string;
   items: JerseyBookingItem[];
   bookingDate: string;
+  paymentId?: string;
+  paymentStatus?: 'Pending' | 'Success' | 'Failed';
 }
 
 export type NavTab = 
