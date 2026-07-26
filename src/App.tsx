@@ -91,12 +91,12 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#111111]">
-      
+
       {/* Top Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        announcementsCount={announcements.filter(a => a.isActive).length}
+        announcements={announcements.filter(a => a.isActive).length}
       />
 
       {/* Main View Area */}
