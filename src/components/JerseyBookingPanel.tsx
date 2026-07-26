@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shirt, CheckCircle, Loader2 } from 'lucide-react';
-import { API_URL } from '../config';
 
 export const JerseyBookingPanel: React.FC = () => {
   const { t } = useLanguage();
@@ -28,7 +27,7 @@ export const JerseyBookingPanel: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/api/jersey-bookings`, {
+      const response = await fetch('/api/jersey-bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
