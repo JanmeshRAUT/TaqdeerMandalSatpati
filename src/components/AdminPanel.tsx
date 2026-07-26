@@ -84,7 +84,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newEvent, setNewEvent] = useState({ titleMr: '', titleEn: '', date: '2026-09-14', timeMr: 'सकाळी ८.०० वा.', timeEn: '8:00 AM', categoryMr: 'आरती', categoryEn: 'Aarti', locationMr: 'सातपाटी', locationEn: 'Satpati', isImportant: false });
 
   // Jersey Booking State
-  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', quantity: 1, size: 10, sleeveType: 'Half' });
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '' });
+  const [newJerseyItems, setNewJerseyItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
+  const [newJerseyCurrentItem, setNewJerseyCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [bookingSearch, setBookingSearch] = useState('');
   const [bookingSizeFilter, setBookingSizeFilter] = useState<string>('all');
   const [bookingSort, setBookingSort] = useState<'asc' | 'desc'>('asc');
@@ -136,24 +138,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   // Jersey Bookings Handlers
+  const handleAddJerseyItem = () => {
+    setNewJerseyItems([...newJerseyItems, { ...newJerseyCurrentItem, id: Date.now().toString() }]);
+    setNewJerseyCurrentItem({ size: 10, sleeveType: 'Half', quantity: 1 });
+  };
+
+  const handleRemoveJerseyItem = (id: string) => {
+    setNewJerseyItems(newJerseyItems.filter(item => item.id !== id));
+  };
+
   const handleAddJerseyBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newJerseyBooking.name.trim() || !newJerseyBooking.address.trim()) return;
+    if (!newJerseyBooking.name.trim() || !newJerseyBooking.address.trim() || newJerseyItems.length === 0) {
+      showToast('माहिती अपूर्ण आहे (Incomplete info)');
+      return;
+    }
     
     const item: JerseyBooking = {
       id: Date.now().toString(),
       name: newJerseyBooking.name.trim(),
       address: newJerseyBooking.address.trim(),
-      quantity: newJerseyBooking.quantity,
-      size: newJerseyBooking.size,
-      sleeveType: newJerseyBooking.sleeveType,
+      items: newJerseyItems,
       bookingDate: new Date().toISOString()
     };
     try {
       const res = await fetch('/api/jersey-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
-      setNewJerseyBooking({ name: '', address: '', quantity: 1, size: 10, sleeveType: 'Half' });
+      setNewJerseyBooking({ name: '', address: '' });
+      setNewJerseyItems([]);
       showToast('जर्सी बुकिंग जोडली (Booking Added)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
@@ -1072,44 +1085,71 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
                 />
               </div>
-
-              <div>
-                <label className="block font-semibold mb-1">प्रमाण (Quantity)</label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  value={newJerseyBooking.quantity}
-                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, quantity: Number(e.target.value)})}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">साईझ (Size)</label>
-                <select
-                  value={newJerseyBooking.size}
-                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, size: Number(e.target.value)})}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
-                >
-                  {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">स्लीव्ह (Sleeve)</label>
-                <select
-                  value={newJerseyBooking.sleeveType}
-                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, sleeveType: e.target.value})}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
-                >
-                  <option value="Half">हाफ (Half)</option>
-                  <option value="Full">फुल (Full)</option>
-                </select>
-              </div>
             </div>
+
+            <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-4">
+              <div className="font-bold text-gray-700 text-sm mb-2 border-b pb-2">जर्सी तपशील जोडा (Add Jersey Details)</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <label className="block font-semibold mb-1">प्रमाण (Quantity)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newJerseyCurrentItem.quantity}
+                    onChange={(e) => setNewJerseyCurrentItem({...newJerseyCurrentItem, quantity: Number(e.target.value)})}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1">साईझ (Size)</label>
+                  <select
+                    value={newJerseyCurrentItem.size}
+                    onChange={(e) => setNewJerseyCurrentItem({...newJerseyCurrentItem, size: Number(e.target.value)})}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  >
+                    {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold mb-1">स्लीव्ह (Sleeve)</label>
+                  <select
+                    value={newJerseyCurrentItem.sleeveType}
+                    onChange={(e) => setNewJerseyCurrentItem({...newJerseyCurrentItem, sleeveType: e.target.value})}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  >
+                    <option value="Half">हाफ (Half)</option>
+                    <option value="Full">फुल (Full)</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddJerseyItem}
+                className="w-full py-2 rounded-lg border-2 border-dashed border-[#FF9933] text-[#FF9933] font-bold text-xs hover:bg-[#FF9933]/10 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus className="w-3 h-3" /> जर्सी जोडा (Add Jersey)
+              </button>
+            </div>
+
+            {newJerseyItems.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-gray-700 border-b pb-1">तुमची ऑर्डर (Order Details) - {newJerseyItems.reduce((s, i) => s + i.quantity, 0)} Jerseys</div>
+                {newJerseyItems.map((item, idx) => (
+                  <div key={item.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-200">
+                    <div className="text-xs">
+                      <span className="font-bold text-gray-800">{idx + 1}.</span> <span className="text-[#FF9933] font-bold ml-1">Size {item.size}</span> | {item.sleeveType} | <span className="font-semibold text-gray-700">Qty {item.quantity}</span>
+                    </div>
+                    <button type="button" onClick={() => handleRemoveJerseyItem(item.id)} className="text-red-500 hover:bg-red-50 p-1 rounded">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <button type="submit" className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs shadow-xs">
               {t('बुकिंग सेव्ह करा', 'Save Booking')}
@@ -1165,11 +1205,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </thead>
                 <tbody>
                   {jerseyBookings
+                    .flatMap(b => (b.items || []).map(i => ({ ...i, bookingId: b.id, name: b.name, address: b.address })))
                     .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
                     .filter(b => bookingSizeFilter === 'all' || b.size === Number(bookingSizeFilter))
                     .sort((a, b) => bookingSort === 'asc' ? a.size - b.size : b.size - a.size)
                     .map((booking) => (
-                    <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
                       <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
                       <td className="p-4 text-sm text-gray-900 text-center font-bold">{booking.quantity}</td>
@@ -1177,9 +1218,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <td className="p-4 text-sm text-gray-600">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</td>
                       <td className="p-4 text-right">
                         <button
-                          onClick={() => handleDeleteJerseyBooking(booking.id)}
+                          onClick={() => handleDeleteJerseyBooking(booking.bookingId)}
                           className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
+                          title="Delete Entire Booking"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1196,8 +1237,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 text-xs font-bold text-gray-400 text-right">
-              {t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-gray-700">{jerseyBookings.length}</span>
+            <div className="mt-4 text-xs font-bold text-gray-400 flex justify-end gap-4">
+              <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-gray-700">{jerseyBookings.length}</span></span>
+              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-gray-700">{jerseyBookings.reduce((sum, b) => sum + (b.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0)}</span></span>
             </div>
           </div>
         </div>

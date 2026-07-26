@@ -96,13 +96,18 @@ export interface Announcement {
   date: string;
 }
 
+export interface JerseyBookingItem {
+  id: string;
+  size: number;
+  sleeveType: string;
+  quantity: number;
+}
+
 export interface JerseyBooking {
   id: string;
   name: string;
   address: string;
-  quantity: number;
-  size: number;
-  sleeveType: string;
+  items: JerseyBookingItem[];
   bookingDate: string;
 }
 

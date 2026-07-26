@@ -15,7 +15,17 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
   const [sizeFilter, setSizeFilter] = useState<string>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const filteredAndSortedBookings = bookings
+  const flattenedBookings = bookings.flatMap(booking => 
+    (booking.items || []).map(item => ({
+      ...item,
+      bookingId: booking.id,
+      name: booking.name,
+      address: booking.address,
+      bookingDate: booking.bookingDate
+    }))
+  );
+
+  const filteredAndSortedBookings = flattenedBookings
     .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .filter(b => sizeFilter === 'all' || b.size === Number(sizeFilter))
     .sort((a, b) => {
@@ -105,7 +115,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
               <tbody>
                 {filteredAndSortedBookings.length > 0 ? (
                   filteredAndSortedBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
+                    <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
@@ -136,8 +146,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
               {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
             </div>
             <div className="text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg whitespace-nowrap flex gap-4">
-              <span>{t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.length}</span></span>
-              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.reduce((sum, b) => sum + (b.quantity || 1), 0)}</span></span>
+              <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{bookings.length}</span></span>
+              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{flattenedBookings.reduce((sum, b) => sum + (b.quantity || 1), 0)}</span></span>
             </div>
           </div>
         </motion.div>
