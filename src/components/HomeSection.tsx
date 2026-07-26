@@ -96,7 +96,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
       )}
 
       {/* HERO SECTION */}
-      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative min-h-[85vh] flex items-center">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative min-h-[60vh] flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center w-full">
           
           {/* Left Hero Content */}
@@ -188,7 +188,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             {/* Background Glow */}
             <div className="absolute inset-0 bg-[#FF6A00]/20 blur-[100px] rounded-full animate-float-delayed pointer-events-none" />
             
-            <div className="relative z-10 w-full h-[500px] sm:h-[600px] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500">
+            <div className="relative z-10 w-full h-[380px] sm:h-[460px] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500">
               {heroImages.map((src, index) => (
                 <img
                   key={src}
