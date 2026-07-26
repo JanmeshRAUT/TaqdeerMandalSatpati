@@ -1,0 +1,6 @@
+{
+  "name": "Taqdeer Mitra Mandal, Satpati",
+  "description": "Digital Brochure and Community Portal for Taqdeer Mitra Mandal, Satpati (तकदीर मित्र मंडळ, सातपाटी) - History, Committee, Gallery, Events, Social Activities & Admin Panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

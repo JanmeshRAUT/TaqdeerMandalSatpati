@@ -1,0 +1,106 @@
+import mongoose, { Schema } from 'mongoose';
+
+const CommitteeMemberSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  nameMr: { type: String, required: true },
+  nameEn: { type: String, required: true },
+  roleMr: { type: String, required: true },
+  roleEn: { type: String, required: true },
+  photoUrl: { type: String, required: true },
+  phone: String,
+  bioMr: String,
+  bioEn: String,
+  order: { type: Number, required: true },
+  termYear: { type: String, required: true }
+});
+
+const DirectoryMemberSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  nameMr: { type: String, required: true },
+  nameEn: { type: String, required: true },
+  joinedYear: { type: Number, required: true },
+  bloodGroup: String,
+  phone: String,
+  locationMr: String,
+  locationEn: String,
+  photoUrl: String,
+  isLifetimeMember: Boolean
+});
+
+const GalleryItemSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  titleMr: { type: String, required: true },
+  titleEn: { type: String, required: true },
+  category: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  year: { type: Number, required: true },
+  descriptionMr: String,
+  descriptionEn: String
+});
+
+const EventScheduleItemSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  titleMr: { type: String, required: true },
+  titleEn: { type: String, required: true },
+  date: { type: String, required: true },
+  timeMr: { type: String, required: true },
+  timeEn: { type: String, required: true },
+  categoryMr: { type: String, required: true },
+  categoryEn: { type: String, required: true },
+  locationMr: { type: String, required: true },
+  locationEn: { type: String, required: true },
+  descriptionMr: String,
+  descriptionEn: String,
+  isImportant: Boolean
+});
+
+const HistoryMilestoneSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  year: { type: String, required: true },
+  titleMr: { type: String, required: true },
+  titleEn: { type: String, required: true },
+  descriptionMr: { type: String, required: true },
+  descriptionEn: { type: String, required: true },
+  imageUrl: String
+});
+
+const SocialActivitySchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  titleMr: { type: String, required: true },
+  titleEn: { type: String, required: true },
+  descriptionMr: { type: String, required: true },
+  descriptionEn: { type: String, required: true },
+  dateMr: { type: String, required: true },
+  dateEn: { type: String, required: true },
+  impactStatMr: { type: String, required: true },
+  impactStatEn: { type: String, required: true },
+  imageUrl: { type: String, required: true }
+});
+
+const SponsorSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  nameMr: { type: String, required: true },
+  nameEn: { type: String, required: true },
+  amountOrTypeMr: { type: String, required: true },
+  amountOrTypeEn: { type: String, required: true },
+  year: { type: Number, required: true },
+  logoUrl: String
+});
+
+const AnnouncementSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  textMr: { type: String, required: true },
+  textEn: { type: String, required: true },
+  linkSection: String,
+  isActive: { type: Boolean, required: true },
+  date: { type: String, required: true }
+});
+
+export const CommitteeMember = mongoose.model('CommitteeMember', CommitteeMemberSchema);
+export const DirectoryMember = mongoose.model('DirectoryMember', DirectoryMemberSchema);
+export const GalleryItem = mongoose.model('GalleryItem', GalleryItemSchema);
+export const EventScheduleItem = mongoose.model('EventScheduleItem', EventScheduleItemSchema);
+export const HistoryMilestone = mongoose.model('HistoryMilestone', HistoryMilestoneSchema);
+export const SocialActivity = mongoose.model('SocialActivity', SocialActivitySchema);
+export const Sponsor = mongoose.model('Sponsor', SponsorSchema);
+export const Announcement = mongoose.model('Announcement', AnnouncementSchema);
