@@ -152,7 +152,6 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
-                  window.dispatchEvent(new CustomEvent('openJerseyBook'));
                 }}
                 id="hero-btn-jersey"
                 className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"
@@ -166,13 +165,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
-                  window.dispatchEvent(new CustomEvent('openJerseyView'));
+                  setActiveTab('jersey-bookings');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 id="hero-btn-jersey-view"
-                className="px-8 py-4 bg-white/50 backdrop-blur-md rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-gray-700 hover:bg-white cursor-pointer relative overflow-hidden border border-gray-200"
+                className="px-8 py-4 bg-white/50 backdrop-blur-md rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-gray-700 hover:bg-white cursor-pointer relative overflow-hidden border border-gray-200 shadow-sm"
               >
-                <List className="w-4 h-4 text-gray-500" />
+                <List className="w-4 h-4 text-[#FF9933]" />
                 <span>{t('बुकिंग पहा', 'View Bookings')}</span>
               </motion.button>
             </motion.div>

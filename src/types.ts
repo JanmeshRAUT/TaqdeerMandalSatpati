@@ -113,4 +113,5 @@ export type NavTab =
   | 'events' 
   | 'social' 
   | 'contact' 
-  | 'admin';
+  | 'admin'
+  | 'jersey-bookings';

@@ -12,6 +12,7 @@ import { EventsSection } from './components/EventsSection';
 import { SocialActivitiesSection } from './components/SocialActivitiesSection';
 import { ContactSection } from './components/ContactSection';
 import { AdminPanel } from './components/AdminPanel';
+import { JerseyBookingsView } from './components/JerseyBookingsView';
 
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -138,6 +139,13 @@ function AppContent() {
 
         {activeTab === 'contact' && (
           <ContactSection />
+        )}
+
+        {activeTab === 'jersey-bookings' && (
+          <JerseyBookingsView 
+            bookings={jerseyBookings} 
+            setActiveTab={setActiveTab} 
+          />
         )}
 
         {activeTab === 'admin' && (
