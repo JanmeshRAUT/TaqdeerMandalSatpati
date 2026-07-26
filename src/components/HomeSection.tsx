@@ -148,7 +148,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
+                  setActiveTab('jersey-shop');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 id="hero-btn-jersey"
                 className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"

@@ -36,8 +36,17 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
   const sizes = Array.from({ length: 21 }, (_, i) => 10 + i * 2);
 
   const handleAddItem = () => {
-    setItems([...items, { ...currentItem, id: Date.now().toString() }]);
-    setCurrentItem({ size: 10, sleeveType: 'Half', quantity: 1 });
+    if (currentItem.quantity > 0) {
+      setItems([...items, { ...currentItem, id: Date.now().toString() }]);
+      
+      // Reset current item selections
+      setCurrentItem({ size: 10, sleeveType: 'Half', quantity: 1 });
+
+      // Provide better UX on mobile by scrolling to the cart details after a short delay
+      setTimeout(() => {
+        document.getElementById('checkout-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   };
 
   const handleRemoveItem = (id: string) => {
@@ -291,11 +300,17 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                             </div>
                           ))}
                         </div>
+                        
+                        {/* Registration Fee */}
+                        <div className="flex justify-between items-center border-t border-orange-200 pt-3 mt-2 text-sm font-bold text-gray-800">
+                          <span>{t('नोंदणी शुल्क', 'Registration Fee')}</span>
+                          <span className="text-[#FF9933]">₹10</span>
+                        </div>
                       </div>
 
-                      <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                      <div id="checkout-details" className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
                         <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
-                          {t('२. तुमची माहिती', '2. Your Details')}
+                          {t('२. तुमचे तपशील', '2. Your Details')}
                         </h3>
                         
                         <div className="space-y-1.5">
