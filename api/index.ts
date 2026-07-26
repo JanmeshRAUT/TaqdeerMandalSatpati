@@ -23,16 +23,8 @@ connectDB();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Serve uploads statically
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-app.use('/uploads', express.static(uploadDir));
-
+// Vercel read-only filesystem fix: Removed local /uploads directory creation.
+// We are using memoryStorage and Base64 Data URIs, so local disk storage is not required.
 // Configure Multer for memory storage (converts to Base64)
 const storage = multer.memoryStorage();
 const upload = multer({ 
