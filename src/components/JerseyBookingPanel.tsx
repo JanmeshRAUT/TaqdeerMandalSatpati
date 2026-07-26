@@ -97,19 +97,19 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
               {t('आगामी गणेशोत्सवासाठी तकदीर मित्र मंडळाची खास डिझाइन केलेली जर्सी आजच बुक करा.', 'Pre-book our exclusively designed Taqdeer Mitra Mandal jersey for the upcoming festival.')}
             </p>
 
-            <div className="flex justify-center md:justify-start">
-              <div className="bg-white p-4 rounded-3xl border border-gray-200 shadow-xl relative w-full max-w-[280px] aspect-[4/5] overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#FF9933]/10 to-transparent z-0"></div>
+            <div className="flex justify-center md:justify-center w-full">
+              <div className="bg-white p-2 sm:p-4 rounded-[2rem] border border-gray-100 shadow-2xl relative w-full max-w-[400px] xl:max-w-[480px] aspect-[4/5] overflow-hidden group transition-all hover:shadow-orange-500/10">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FF9933]/5 to-transparent z-0"></div>
                 
                 {jerseyImages.map((src, index) => (
                   <img 
                     key={src}
                     src={src} 
                     alt="Taqdeer Mandal Jersey" 
-                    className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-1000 ease-in-out z-10 ${
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1500ms] ease-in-out z-10 ${
                       index === currentImageIndex 
                         ? 'opacity-100 translate-x-0 scale-100' 
-                        : 'opacity-0 translate-x-8 scale-95'
+                        : 'opacity-0 -translate-x-4 scale-[0.97]'
                     }`}
                   />
                 ))}

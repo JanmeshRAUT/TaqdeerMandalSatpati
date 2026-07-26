@@ -209,7 +209,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                   key={src}
                   src={src}
                   alt="Taqdeer Mandal Official Jersey"
-                  className={`absolute w-full h-full object-contain p-8 transition-all duration-[2000ms] ease-in-out ${
+                  className={`absolute w-full h-full object-cover sm:object-contain p-2 sm:p-4 lg:p-6 transition-all duration-[2000ms] ease-in-out ${
                     index === currentHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                   }`}
                   referrerPolicy="no-referrer"
