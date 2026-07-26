@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { NavTab, Announcement } from '../types';
+import { NavTab, Announcement, JerseyBooking } from '../types';
 import { CountdownWidget } from './CountdownWidget';
 import { JerseyBookingPanel } from './JerseyBookingPanel';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -12,9 +12,10 @@ import {
 interface HomeSectionProps {
   setActiveTab: (tab: NavTab) => void;
   announcements: Announcement[];
+  jerseyBookings: JerseyBooking[];
 }
 
-export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announcements }) => {
+export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announcements, jerseyBookings }) => {
   const { t } = useLanguage();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 100]);
@@ -264,7 +265,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
         className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24"
         id="jersey-booking"
       >
-        <JerseyBookingPanel />
+        <JerseyBookingPanel bookings={jerseyBookings} />
       </motion.div>
 
       {/* STATS METRICS FEATURE BAR */}

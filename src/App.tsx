@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { NavTab } from './types';
+import { NavTab, JerseyBooking } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeSection } from './components/HomeSection';
@@ -47,11 +47,12 @@ function AppContent() {
   const [milestones, setMilestones] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
+  const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes] = await Promise.all([
+        const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes] = await Promise.all([
           fetch('/api/announcements').then(r => r.json()),
           fetch('/api/committee').then(r => r.json()),
           fetch('/api/members').then(r => r.json()),
@@ -59,7 +60,8 @@ function AppContent() {
           fetch('/api/events').then(r => r.json()),
           fetch('/api/milestones').then(r => r.json()),
           fetch('/api/activities').then(r => r.json()),
-          fetch('/api/sponsors').then(r => r.json())
+          fetch('/api/sponsors').then(r => r.json()),
+          fetch('/api/jersey-bookings').then(r => r.json())
         ]);
         setAnnouncements(annRes);
         setCommittee(comRes);
@@ -69,6 +71,7 @@ function AppContent() {
         setMilestones(milRes);
         setActivities(actRes);
         setSponsors(spoRes);
+        setJerseyBookings(jerRes);
       } catch (error) {
         console.error('Error fetching data from API:', error);
       }
@@ -105,6 +108,7 @@ function AppContent() {
           <HomeSection
             setActiveTab={setActiveTab}
             announcements={announcements}
+            jerseyBookings={jerseyBookings}
           />
         )}
 
@@ -152,6 +156,8 @@ function AppContent() {
             setActivities={setActivities}
             sponsors={sponsors}
             setSponsors={setSponsors}
+            jerseyBookings={jerseyBookings}
+            setJerseyBookings={setJerseyBookings}
             resetAllData={resetAllData}
           />
         )}

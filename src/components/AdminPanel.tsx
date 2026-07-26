@@ -7,11 +7,12 @@ import {
   EventScheduleItem,
   SocialActivity,
   Sponsor,
-  Announcement
+  Announcement,
+  JerseyBooking
 } from '../types';
 import { 
   Lock, Key, Shield, Plus, Trash2, Edit3, Save, RotateCcw, Download, Upload, 
-  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check 
+  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check, Shirt, Search, ArrowUpDown 
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -29,6 +30,8 @@ interface AdminPanelProps {
   setActivities: React.Dispatch<React.SetStateAction<SocialActivity[]>>;
   sponsors: Sponsor[];
   setSponsors: React.Dispatch<React.SetStateAction<Sponsor[]>>;
+  jerseyBookings: JerseyBooking[];
+  setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
   resetAllData: () => void;
 }
 
@@ -40,13 +43,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   events, setEvents,
   activities, setActivities,
   sponsors, setSponsors,
+  jerseyBookings, setJerseyBookings,
   resetAllData
 }) => {
   const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
-  const [activeTab, setActiveTab] = useState<'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'backup'>('announcements');
+  const [activeTab, setActiveTab] = useState<'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'backup'>('announcements');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -78,6 +82,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [galleryUploadType, setGalleryUploadType] = useState<'upload' | 'link'>('upload');
   const [newEvent, setNewEvent] = useState({ titleMr: '', titleEn: '', date: '2026-09-14', timeMr: 'सकाळी ८.०० वा.', timeEn: '8:00 AM', categoryMr: 'आरती', categoryEn: 'Aarti', locationMr: 'सातपाटी', locationEn: 'Satpati', isImportant: false });
+
+  // Jersey Booking State
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', size: 10, sleeveType: 'Half' });
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingSort, setBookingSort] = useState<'asc' | 'desc'>('asc');
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -122,6 +131,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
       setAnnouncements(announcements.filter(a => a.id !== id));
       showToast('सूचना डिलीट केली (Announcement Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  // Jersey Bookings Handlers
+  const handleAddJerseyBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newJerseyBooking.name.trim()) return;
+    
+    const item: JerseyBooking = {
+      id: Date.now().toString(),
+      name: newJerseyBooking.name.trim(),
+      size: newJerseyBooking.size,
+      sleeveType: newJerseyBooking.sleeveType,
+      bookingDate: new Date().toISOString()
+    };
+    try {
+      const res = await fetch('/api/jersey-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+      const saved = await res.json();
+      setJerseyBookings([...jerseyBookings, saved]);
+      setNewJerseyBooking({ name: '', size: 10, sleeveType: 'Half' });
+      showToast('जर्सी बुकिंग जोडली (Booking Added)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  const handleDeleteJerseyBooking = async (id: string) => {
+    try {
+      await fetch(`/api/jersey-bookings/${id}`, { method: 'DELETE' });
+      setJerseyBookings(jerseyBookings.filter(b => b.id !== id));
+      showToast('बुकिंग डिलीट केली (Booking Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
@@ -462,6 +500,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         >
           <Calendar className="w-4 h-4" />
           <span>{t('कार्यक्रम (Events)', 'Events')}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('jersey-bookings')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
+            activeTab === 'jersey-bookings' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Shirt className="w-4 h-4" />
+          <span>{t('जर्सी बुकिंग (Jersey Bookings)', 'Jersey Bookings')}</span>
         </button>
 
         <button
@@ -990,7 +1038,128 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
-      {/* TAB CONTENT 5: RESET DATA */}
+      {/* TAB CONTENT 6: JERSEY BOOKINGS */}
+      {activeTab === 'jersey-bookings' && (
+        <div className="space-y-6">
+          <form onSubmit={handleAddJerseyBooking} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-[#FF9933]" />
+              <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1">नाव (Name)</label>
+                <input
+                  type="text"
+                  required
+                  value={newJerseyBooking.name}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, name: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">साईझ (Size)</label>
+                <select
+                  value={newJerseyBooking.size}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, size: Number(e.target.value)})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                >
+                  {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">स्लीव्ह (Sleeve)</label>
+                <select
+                  value={newJerseyBooking.sleeveType}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, sleeveType: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                >
+                  <option value="Half">हाफ (Half)</option>
+                  <option value="Full">फुल (Full)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs shadow-xs">
+              {t('बुकिंग सेव्ह करा', 'Save Booking')}
+            </button>
+          </form>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('नावाने शोधा...', 'Search by name...')}
+                  value={bookingSearch}
+                  onChange={(e) => setBookingSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 focus:bg-white transition-all"
+                />
+              </div>
+              
+              <button
+                onClick={() => setBookingSort(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+              >
+                <ArrowUpDown className="w-4 h-4" />
+                <span>{t('साईझ', 'Size')} ({bookingSort === 'asc' ? '↑' : '↓'})</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('साईझ', 'Size')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('स्लीव्ह', 'Sleeve')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jerseyBookings
+                    .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
+                    .sort((a, b) => bookingSort === 'asc' ? a.size - b.size : b.size - a.size)
+                    .map((booking) => (
+                    <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
+                      <td className="p-4 text-sm font-bold text-[#FF9933]">{booking.size}</td>
+                      <td className="p-4 text-sm text-gray-600">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDeleteJerseyBooking(booking.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {jerseyBookings.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-gray-500 font-medium">
+                        {t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 text-xs font-bold text-gray-400 text-right">
+              {t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-gray-700">{jerseyBookings.length}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 7: RESET DATA */}
       {activeTab === 'backup' && (
         <div className="p-8 rounded-2xl bg-red-50 border border-red-200 text-center space-y-4">
           <RotateCcw className="w-10 h-10 text-red-600 mx-auto" />

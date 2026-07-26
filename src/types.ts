@@ -96,6 +96,14 @@ export interface Announcement {
   date: string;
 }
 
+export interface JerseyBooking {
+  id: string;
+  name: string;
+  size: number;
+  sleeveType: string;
+  bookingDate: string;
+}
+
 export type NavTab = 
   | 'home' 
   | 'history' 
