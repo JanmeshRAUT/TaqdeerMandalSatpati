@@ -1,11 +1,25 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --gold-light: #F9E596;
+    --gold-main: #D4AF37;
+    --gold-dark: #B38B22;
+    --saffron-light: #FFB366;
+    --saffron-main: #FF6A00;
+    --saffron-dark: #CC5500;
+  }
+
   body {
     font-family: 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #111111;
-    background-color: #FFFFFF;
+    background-color: #FAFAFA;
+    background-image: radial-gradient(circle at top right, rgba(255, 106, 0, 0.03), transparent 40%),
+                      radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.03), transparent 40%);
+    background-attachment: fixed;
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -17,6 +31,48 @@
   font-family: 'Inter', sans-serif;
 }
 
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-saffron {
+    background: linear-gradient(135deg, var(--saffron-light), var(--saffron-main));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-premium {
+    background: linear-gradient(135deg, #111111 0%, #2A2A2A 100%);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px -10px rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+}
+
 /* Custom smooth scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -26,9 +82,9 @@
   background: #F8F8F8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+  background: #D4AF37;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: #B38B22;
 }

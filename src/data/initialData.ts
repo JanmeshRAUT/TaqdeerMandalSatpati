@@ -245,8 +245,8 @@ export const INITIAL_GALLERY: GalleryItem[] = [
 export const INITIAL_EVENTS: EventScheduleItem[] = [
   {
     id: 'evt-1',
-    titleMr: 'श्रींची प्राणप्रतिष्ठापना व प्रतिष्ठापना पूजा',
-    titleEn: 'Shree Ganesha Sthapana & Auspicious Prana Pratishtha',
+    titleMr: 'श्रींची प्राणप्रतिष्ठापना व प्रतिष्ठापना पूजा (दिवस १)',
+    titleEn: 'Shree Ganesha Sthapana & Prana Pratishtha (Day 1)',
     date: '2026-09-14',
     timeMr: 'सकाळी ९.०० वा.',
     timeEn: '9:00 AM',
@@ -269,8 +269,8 @@ export const INITIAL_EVENTS: EventScheduleItem[] = [
     categoryEn: 'Daily Aarti',
     locationMr: 'मुख्य मंडप, सातपाटी',
     locationEn: 'Main Mandap, Satpati',
-    descriptionMr: 'सर्व भाविकांसाठी सकाळची मुख्य आरती आणि ताजी पंचखाद्य प्रसाद वाटप.',
-    descriptionEn: 'Morning community prayer and Panchkhadya prasad distribution.'
+    descriptionMr: '९ दिवस चालणारी सर्व भाविकांसाठी सकाळची मुख्य आरती आणि ताजी पंचखाद्य प्रसाद वाटप.',
+    descriptionEn: '9-days morning community prayer and Panchkhadya prasad distribution.'
   },
   {
     id: 'evt-3',
@@ -283,14 +283,14 @@ export const INITIAL_EVENTS: EventScheduleItem[] = [
     categoryEn: 'Daily Aarti',
     locationMr: 'मुख्य मंडप, सातपाटी',
     locationEn: 'Main Mandap, Satpati',
-    descriptionMr: 'दीपमाळा व घंटानादाच्या मंगलमय वातावरणात सायंकाळची महाआरती.',
-    descriptionEn: 'Grand evening prayer illuminated with traditional oil lamps.'
+    descriptionMr: '९ दिवस चालणारी दीपमाळा व घंटानादाच्या मंगलमय वातावरणात सायंकाळची महाआरती.',
+    descriptionEn: '9-days grand evening prayer illuminated with traditional oil lamps.'
   },
   {
     id: 'evt-4',
-    titleMr: 'महिला व बालकांसाठी मोदक व रांगोळी स्पर्धा',
-    titleEn: 'Modak Making & Traditional Rangoli Competition',
-    date: '2026-09-17',
+    titleMr: 'महिला व बालकांसाठी मोदक व रांगोळी स्पर्धा (दिवस ५)',
+    titleEn: 'Modak & Traditional Rangoli Competition (Day 5)',
+    date: '2026-09-18',
     timeMr: 'दुपारी ४.०० ते ७.०० वा.',
     timeEn: '4:00 PM - 7:00 PM',
     categoryMr: 'सांस्कृतिक स्पर्धा',
@@ -302,9 +302,9 @@ export const INITIAL_EVENTS: EventScheduleItem[] = [
   },
   {
     id: 'evt-5',
-    titleMr: 'पारंपारिक भजनी मंडळाचे हरिनाम सप्ताह व भजन',
-    titleEn: 'Traditional Bhajan Night & Devotional Music',
-    date: '2026-09-18',
+    titleMr: 'पारंपारिक भजनी मंडळाचे हरिनाम सप्ताह (दिवस ७)',
+    titleEn: 'Traditional Bhajan Night & Devotional Music (Day 7)',
+    date: '2026-09-20',
     timeMr: 'रात्री ९.०० वाजता',
     timeEn: '9:00 PM Onwards',
     categoryMr: 'भजन व कीर्तन',
@@ -316,32 +316,32 @@ export const INITIAL_EVENTS: EventScheduleItem[] = [
   },
   {
     id: 'evt-6',
-    titleMr: 'सर्व भाविकांसाठी महाप्रसाद अन्नछत्र',
-    titleEn: 'Grand Mahaprasad Community Feast',
-    date: '2026-09-20',
+    titleMr: 'सर्व भाविकांसाठी महाप्रसाद अन्नछत्र (दिवस ८)',
+    titleEn: 'Grand Mahaprasad Community Feast (Day 8)',
+    date: '2026-09-21',
     timeMr: 'दुपारी १२.०० ते दुपारी ४.०० वा.',
     timeEn: '12:00 PM - 4:00 PM',
     categoryMr: 'अन्नछत्र / महाप्रसाद',
     categoryEn: 'Community Feast',
     locationMr: 'तकदीर ग्राउंड, सातपाटी',
     locationEn: 'Taqdeer Ground, Satpati',
-    descriptionMr: '५,००० हून अधिक भाविकांसाठी शुध्द व स्वादिष्ट महाप्रसादाचे मोफत वाटप.',
-    descriptionEn: 'Free pristine vegetarian Mahaprasad served to over 5,000 devotees.',
+    descriptionMr: 'आठव्या दिवशी ५,००० हून अधिक भाविकांसाठी शुध्द व स्वादिष्ट महाप्रसादाचे मोफत वाटप.',
+    descriptionEn: 'Day 8 signature event: Free pristine vegetarian Mahaprasad served to over 5,000 devotees.',
     isImportant: true
   },
   {
     id: 'evt-7',
-    titleMr: 'श्रींचे अनंत चतुर्दशी भव्य विसर्जन सोहळा',
-    titleEn: 'Anant Chaturdashi Grand Visarjan Immersion',
-    date: '2026-09-24',
+    titleMr: 'श्रींचे भव्य विसर्जन सोहळा (दिवस ९)',
+    titleEn: 'Grand Visarjan Immersion (Day 9)',
+    date: '2026-09-22',
     timeMr: 'दुपारी ३.०० वा. मिरवणूक सुरुवात',
     timeEn: '3:00 PM Procession Onwards',
     categoryMr: 'विसर्जन सोहळा',
     categoryEn: 'Immersion Procession',
     locationMr: 'सातपाटी समुद्रकिनारा',
     locationEn: 'Satpati Beach',
-    descriptionMr: 'ढोल-ताशा पथक, गुलालाची उधळण व भावपूर्ण वातावरणात सातपाटी समुद्रात विसर्जन.',
-    descriptionEn: 'Emotional farewell procession featuring traditional Dhol Tasha at Satpati Beach.',
+    descriptionMr: '९ व्या दिवशी ढोल-ताशा पथक, गुलालाची उधळण व भावपूर्ण वातावरणात सातपाटी समुद्रात विसर्जन.',
+    descriptionEn: 'Day 9: Emotional farewell procession featuring traditional Dhol Tasha at Satpati Beach.',
     isImportant: true
   }
 ];
