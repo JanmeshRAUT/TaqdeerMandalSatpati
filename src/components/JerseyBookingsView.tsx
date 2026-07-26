@@ -12,10 +12,12 @@ interface JerseyBookingsViewProps {
 export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings, setActiveTab }) => {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sizeFilter, setSizeFilter] = useState<string>('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const filteredAndSortedBookings = bookings
     .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(b => sizeFilter === 'all' || b.size === Number(sizeFilter))
     .sort((a, b) => {
       if (sortDirection === 'asc') return a.size - b.size;
       return b.size - a.size;
@@ -67,14 +69,26 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 focus:bg-white transition-all font-medium"
               />
             </div>
-            
-            <button
-              onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-            >
-              <ArrowUpDown className="w-4 h-4" />
-              <span>{t('साईझ', 'Size')} ({sortDirection === 'asc' ? '↑' : '↓'})</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={sizeFilter}
+                onChange={(e) => setSizeFilter(e.target.value)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer"
+              >
+                <option value="all">{t('सर्व साईझ', 'All Sizes')}</option>
+                {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
+              >
+                <ArrowUpDown className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('साईझ', 'Size')}</span> ({sortDirection === 'asc' ? '↑' : '↓'})
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm flex-1">

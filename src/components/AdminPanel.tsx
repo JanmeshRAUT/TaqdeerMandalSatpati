@@ -86,6 +86,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // Jersey Booking State
   const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', size: 10, sleeveType: 'Half' });
   const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingSizeFilter, setBookingSizeFilter] = useState<string>('all');
   const [bookingSort, setBookingSort] = useState<'asc' | 'desc'>('asc');
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1103,13 +1104,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 />
               </div>
               
-              <button
-                onClick={() => setBookingSort(prev => prev === 'asc' ? 'desc' : 'asc')}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
-              >
-                <ArrowUpDown className="w-4 h-4" />
-                <span>{t('साईझ', 'Size')} ({bookingSort === 'asc' ? '↑' : '↓'})</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  value={bookingSizeFilter}
+                  onChange={(e) => setBookingSizeFilter(e.target.value)}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer"
+                >
+                  <option value="all">{t('सर्व साईझ', 'All Sizes')}</option>
+                  {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={() => setBookingSort(prev => prev === 'asc' ? 'desc' : 'asc')}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                  <span>{t('साईझ', 'Size')} ({bookingSort === 'asc' ? '↑' : '↓'})</span>
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto rounded-lg border border-gray-200">
@@ -1125,6 +1139,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <tbody>
                   {jerseyBookings
                     .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
+                    .filter(b => bookingSizeFilter === 'all' || b.size === Number(bookingSizeFilter))
                     .sort((a, b) => bookingSort === 'asc' ? a.size - b.size : b.size - a.size)
                     .map((booking) => (
                     <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">

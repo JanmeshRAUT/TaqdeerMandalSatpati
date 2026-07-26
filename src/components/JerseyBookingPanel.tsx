@@ -86,12 +86,20 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
               {t('आगामी गणेशोत्सवासाठी तकदीर मित्र मंडळाची खास डिझाइन केलेली जर्सी आजच बुक करा.', 'Pre-book our exclusively designed Taqdeer Mitra Mandal jersey for the upcoming festival.')}
             </p>
 
-            <div className="flex justify-center md:justify-start">
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs rotate-[-2deg] hover:rotate-0 transition-transform">
-                <div className="w-40 h-40 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
-                  <Shirt className="w-20 h-20 opacity-50" />
-                  <span className="sr-only">Jersey Placeholder</span>
-                </div>
+            <div className="flex justify-center md:justify-start gap-4">
+              <div className="bg-white p-2 rounded-2xl border border-gray-200 shadow-2xs rotate-[-2deg] hover:rotate-0 transition-transform">
+                <img 
+                  src="/images/Tshirt1.png" 
+                  alt="Taqdeer Mandal Jersey Front" 
+                  className="w-32 h-auto object-cover rounded-xl"
+                />
+              </div>
+              <div className="bg-white p-2 rounded-2xl border border-gray-200 shadow-2xs rotate-[2deg] hover:rotate-0 transition-transform">
+                <img 
+                  src="/images/Tshirt2.png" 
+                  alt="Taqdeer Mandal Jersey Back" 
+                  className="w-32 h-auto object-cover rounded-xl"
+                />
               </div>
             </div>
           </div>
