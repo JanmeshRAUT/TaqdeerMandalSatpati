@@ -6,7 +6,7 @@ import { JerseyBookingPanel } from './JerseyBookingPanel';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   History, Image as ImageIcon, Sparkles, HeartHandshake, 
-  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight, MousePointer2 
+  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight, MousePointer2, Shirt 
 } from 'lucide-react';
 
 interface HomeSectionProps {
@@ -149,13 +149,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveTab('gallery')}
-                id="hero-btn-gallery"
-                className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group"
+                onClick={() => {
+                  document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                id="hero-btn-jersey"
+                className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                <ImageIcon className="w-4 h-4 text-[#D4AF37]" />
-                <span>{t('फोटो गॅलरी', 'Photo Gallery')}</span>
+                <Shirt className="w-4 h-4 text-[#FF9933]" />
+                <span>{t('जर्सी बुक करा', 'Book Jersey')}</span>
               </motion.button>
             </motion.div>
 
@@ -259,7 +261,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
-        className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8"
+        className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24"
+        id="jersey-booking"
       >
         <JerseyBookingPanel />
       </motion.div>
