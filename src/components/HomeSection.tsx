@@ -6,7 +6,7 @@ import { JerseyBookingPanel } from './JerseyBookingPanel';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   History, Image as ImageIcon, Sparkles, HeartHandshake, 
-  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight, MousePointer2, Shirt 
+  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight, MousePointer2, Shirt, List 
 } from 'lucide-react';
 
 interface HomeSectionProps {
@@ -152,6 +152,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
+                  window.dispatchEvent(new CustomEvent('openJerseyBook'));
                 }}
                 id="hero-btn-jersey"
                 className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"
@@ -159,6 +160,20 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                 <Shirt className="w-4 h-4 text-[#FF9933]" />
                 <span>{t('जर्सी बुक करा', 'Book Jersey')}</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  document.getElementById('jersey-booking')?.scrollIntoView({ behavior: 'smooth' });
+                  window.dispatchEvent(new CustomEvent('openJerseyView'));
+                }}
+                id="hero-btn-jersey-view"
+                className="px-8 py-4 bg-white/50 backdrop-blur-md rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-gray-700 hover:bg-white cursor-pointer relative overflow-hidden border border-gray-200"
+              >
+                <List className="w-4 h-4 text-gray-500" />
+                <span>{t('बुकिंग पहा', 'View Bookings')}</span>
               </motion.button>
             </motion.div>
 

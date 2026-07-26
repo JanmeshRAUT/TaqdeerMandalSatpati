@@ -11,6 +11,17 @@ interface JerseyBookingPanelProps {
 export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings = [] }) => {
   const { t } = useLanguage();
   const [mode, setMode] = useState<'book' | 'view'>('book');
+
+  React.useEffect(() => {
+    const handleOpenView = () => setMode('view');
+    const handleOpenBook = () => setMode('book');
+    window.addEventListener('openJerseyView', handleOpenView);
+    window.addEventListener('openJerseyBook', handleOpenBook);
+    return () => {
+      window.removeEventListener('openJerseyView', handleOpenView);
+      window.removeEventListener('openJerseyBook', handleOpenBook);
+    };
+  }, []);
   
   // Booking Form State
   const [formData, setFormData] = useState({
