@@ -96,11 +96,18 @@ const AnnouncementSchema = new Schema({
   date: { type: String, required: true }
 });
 
+const JerseyBookingItemSchema = new Schema({
+  id: { type: String, required: true },
+  size: { type: Number, required: true },
+  sleeveType: { type: String, required: true },
+  quantity: { type: Number, required: true }
+});
+
 const JerseyBookingSchema = new Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  size: { type: Number, required: true },
-  sleeveType: { type: String, required: true },
+  address: { type: String, required: true },
+  items: [JerseyBookingItemSchema],
   bookingDate: { type: String, required: true }
 });
 

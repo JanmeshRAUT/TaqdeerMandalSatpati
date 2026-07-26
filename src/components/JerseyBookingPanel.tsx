@@ -184,40 +184,10 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                   onSubmit={handleSubmit}
                   className="space-y-5"
                 >
-                  {/* Name */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-bold text-gray-700">
-                      {t('पूर्ण नाव', 'Full Name')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50"
-                      placeholder={t('तुमचे नाव एंटर करा', 'Enter your name')}
-                    />
-                  </div>
-
-                  {/* Address */}
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-bold text-gray-700">
-                      {t('पत्ता', 'Address')} <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 resize-none"
-                      placeholder={t('तुमचा संपूर्ण पत्ता एंटर करा', 'Enter your full address')}
-                    />
-                  </div>
-
-                  <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-4">
-                    <div className="font-bold text-gray-700 text-sm mb-2 border-b pb-2">
-                      {t('जर्सी तपशील जोडा', 'Add Jersey Details')}
-                    </div>
+                  <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                    <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
+                      {t('१. जर्सी निवडा', '1. Select Jersey')}
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* Size */}
                       <div className="space-y-1.5 col-span-1">
@@ -227,7 +197,7 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                         <select
                           value={currentItem.size}
                           onChange={(e) => setCurrentItem({ ...currentItem, size: Number(e.target.value) })}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 appearance-none cursor-pointer text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 appearance-none cursor-pointer text-sm font-medium"
                         >
                           {sizes.map(size => (
                             <option key={size} value={size}>{size}</option>
@@ -243,7 +213,7 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                         <select
                           value={currentItem.sleeveType}
                           onChange={(e) => setCurrentItem({ ...currentItem, sleeveType: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 appearance-none cursor-pointer text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 appearance-none cursor-pointer text-sm font-medium"
                         >
                           <option value="Half">{t('हाफ', 'Half')}</option>
                           <option value="Full">{t('फुल', 'Full')}</option>
@@ -261,70 +231,116 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                           max="50"
                           value={currentItem.quantity}
                           onChange={(e) => setCurrentItem({ ...currentItem, quantity: Number(e.target.value) })}
-                          className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 text-sm"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 text-sm font-medium"
                         />
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      className="w-full py-2.5 rounded-lg border-2 border-dashed border-[#FF9933] text-[#FF9933] font-bold text-sm hover:bg-[#FF9933]/10 transition-colors flex items-center justify-center gap-2 mt-2"
+                      className="w-full py-3 rounded-xl bg-orange-50 text-[#FF9933] font-bold hover:bg-[#FF9933] hover:text-white transition-colors flex items-center justify-center gap-2 border border-orange-200 hover:border-[#FF9933]"
                     >
-                      <Plus className="w-4 h-4" />
-                      {t('जर्सी कार्टमध्ये जोडा', 'Add Jersey to Order')}
+                      <Plus className="w-5 h-5" />
+                      {t('ऑर्डरमध्ये जोडा', 'Add to Order')}
                     </button>
                   </div>
 
                   {items.length > 0 && (
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 space-y-3">
-                      <div className="text-sm font-bold text-gray-800 border-b border-orange-200 pb-2">
-                        {t('तुमची ऑर्डर', 'Your Order')} ({items.reduce((sum, item) => sum + item.quantity, 0)} {t('जर्सी', 'Jerseys')})
-                      </div>
-                      {items.map((item, index) => (
-                        <div key={item.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg shadow-2xs border border-orange-100">
-                          <div className="flex items-center gap-3">
-                            <span className="font-bold text-gray-800 text-sm">{index + 1}.</span>
-                            <div className="text-sm">
-                              <span className="font-bold text-[#FF9933]">Size: {item.size}</span> 
-                              <span className="text-gray-500 mx-1">|</span>
-                              <span className="font-semibold text-gray-700">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6 mt-6"
+                    >
+                      <div className="bg-orange-50/50 p-5 rounded-xl border border-orange-100 space-y-3">
+                        <h3 className="text-sm font-bold text-gray-800 border-b border-orange-200 pb-2 flex justify-between items-center">
+                          <span>{t('तुमची ऑर्डर', 'Your Order')}</span>
+                          <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-md text-xs">
+                            {items.reduce((sum, item) => sum + item.quantity, 0)} {t('जर्सी', 'Jerseys')}
+                          </span>
+                        </h3>
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                          {items.map((item, index) => (
+                            <div key={item.id} className="flex items-center justify-between bg-white px-4 py-3 rounded-xl shadow-2xs border border-orange-50">
+                              <div className="flex items-center gap-3">
+                                <span className="font-extrabold text-gray-400 text-sm">{index + 1}.</span>
+                                <div className="text-sm">
+                                  <span className="font-bold text-[#FF9933]">Size {item.size}</span> 
+                                  <span className="text-gray-300 mx-2">|</span>
+                                  <span className="font-semibold text-gray-700">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-sm font-bold bg-gray-50 text-gray-700 px-3 py-1 rounded-lg border border-gray-100">Qty: {item.quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveItem(item.id)}
+                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                  title="Remove"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-md">Qty: {item.quantity}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveItem(item.id)}
-                              className="text-red-400 hover:text-red-600 p-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
 
-                  {error && (
-                    <p className="text-red-500 text-sm font-medium">{error}</p>
-                  )}
+                      <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">
+                          {t('२. तुमची माहिती', '2. Your Details')}
+                        </h3>
+                        
+                        <div className="space-y-1.5">
+                          <label className="block text-sm font-bold text-gray-700">
+                            {t('पूर्ण नाव', 'Full Name')} <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 font-medium"
+                            placeholder={t('तुमचे नाव एंटर करा', 'Enter your name')}
+                          />
+                        </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3.5 bg-[#111111] text-white rounded-xl font-bold hover:bg-[#222222] transition-colors shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <Shirt className="w-5 h-5" />
-                        <span>{t('बुक करा', 'Book Now')}</span>
-                      </>
-                    )}
-                  </motion.button>
+                        <div className="space-y-1.5">
+                          <label className="block text-sm font-bold text-gray-700">
+                            {t('पत्ता', 'Address')} <span className="text-red-500">*</span>
+                          </label>
+                          <textarea
+                            required
+                            rows={2}
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 resize-none font-medium"
+                            placeholder={t('तुमचा संपूर्ण पत्ता एंटर करा', 'Enter your full address')}
+                          />
+                        </div>
+                      </div>
+
+                      {error && (
+                        <p className="text-red-500 text-sm font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>
+                      )}
+
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-gradient-to-r from-[#111111] to-[#333333] text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed text-lg"
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle className="w-6 h-6 text-[#FF9933]" />
+                            <span>{t('ऑर्डर कन्फर्म करा', 'Confirm Order')}</span>
+                          </>
+                        )}
+                      </motion.button>
+                    </motion.div>
+                  )}
                 </motion.form>
               )}
             </AnimatePresence>
