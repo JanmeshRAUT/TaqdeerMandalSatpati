@@ -44,13 +44,17 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
 
             {/* Circular Profile Photo */}
             <div className="relative mt-2">
-              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#FAF8F5] shadow-md group-hover:scale-105 transition-transform duration-300 bg-gray-100">
-                <img
-                  src={member.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'}
-                  alt={member.nameEn}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-[#FAF8F5] shadow-md group-hover:scale-105 transition-transform duration-300 bg-gray-100 flex items-center justify-center">
+                {member.photoUrl ? (
+                  <img
+                    src={member.photoUrl}
+                    alt={member.nameEn}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <Users className="w-12 h-12 text-gray-300" />
+                )}
               </div>
               <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white shadow-2xs" title="Active Office Bearer" />
             </div>

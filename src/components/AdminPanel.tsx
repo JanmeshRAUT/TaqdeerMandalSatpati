@@ -144,7 +144,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         roleMr: newCommittee.roleMr || 'कार्यकारिणी सदस्य',
         roleEn: newCommittee.roleEn || 'Executive Member',
         termYear: newCommittee.termYear,
-        photoUrl: newCommittee.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+        photoUrl: newCommittee.photoUrl,
         phone: newCommittee.phone,
         order: committee.length + 1
       };
@@ -201,7 +201,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         phone: newMember.phone,
         locationMr: newMember.locationMr,
         locationEn: newMember.locationEn,
-        photoUrl: newMember.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+        photoUrl: newMember.photoUrl,
         isLifetimeMember: newMember.isLifetimeMember
       };
       try {
@@ -619,7 +619,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {committee.map((c) => (
               <div key={c.id} className="p-4 rounded-xl bg-white border border-gray-200 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <img src={c.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                    {c.photoUrl ? (
+                      <img src={c.photoUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <UserCheck className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
                   <div>
                     <div className="text-sm font-bold text-gray-900">{c.nameMr}</div>
                     <div className="text-xs text-[#FF9933]">{c.roleMr} ({c.termYear})</div>

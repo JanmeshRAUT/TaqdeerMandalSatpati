@@ -6,7 +6,7 @@ const CommitteeMemberSchema = new Schema({
   nameEn: { type: String, required: true },
   roleMr: { type: String, required: true },
   roleEn: { type: String, required: true },
-  photoUrl: { type: String, required: true },
+  photoUrl: String,
   phone: String,
   bioMr: String,
   bioEn: String,
