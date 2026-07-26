@@ -96,6 +96,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
                   <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
                 </tr>
@@ -105,6 +107,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                   filteredAndSortedBookings.map((booking) => (
                     <tr key={booking.id} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
+                      <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
+                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
                       <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
                         <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">
@@ -115,7 +119,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="p-12 text-center">
+                    <td colSpan={5} className="p-12 text-center">
                       <div className="flex flex-col items-center justify-center text-gray-400">
                         <Shirt className="w-12 h-12 mb-4 opacity-20" />
                         <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
@@ -131,8 +135,9 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             <div className="text-xs sm:text-sm font-bold text-gray-400">
               {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
             </div>
-            <div className="text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg whitespace-nowrap">
-              {t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.length}</span>
+            <div className="text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg whitespace-nowrap flex gap-4">
+              <span>{t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.length}</span></span>
+              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.reduce((sum, b) => sum + (b.quantity || 1), 0)}</span></span>
             </div>
           </div>
         </motion.div>

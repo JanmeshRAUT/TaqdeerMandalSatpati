@@ -99,6 +99,8 @@ export interface Announcement {
 export interface JerseyBooking {
   id: string;
   name: string;
+  address: string;
+  quantity: number;
   size: number;
   sleeveType: string;
   bookingDate: string;

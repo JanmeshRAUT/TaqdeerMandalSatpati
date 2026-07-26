@@ -84,7 +84,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newEvent, setNewEvent] = useState({ titleMr: '', titleEn: '', date: '2026-09-14', timeMr: 'सकाळी ८.०० वा.', timeEn: '8:00 AM', categoryMr: 'आरती', categoryEn: 'Aarti', locationMr: 'सातपाटी', locationEn: 'Satpati', isImportant: false });
 
   // Jersey Booking State
-  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', size: 10, sleeveType: 'Half' });
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', quantity: 1, size: 10, sleeveType: 'Half' });
   const [bookingSearch, setBookingSearch] = useState('');
   const [bookingSizeFilter, setBookingSizeFilter] = useState<string>('all');
   const [bookingSort, setBookingSort] = useState<'asc' | 'desc'>('asc');
@@ -138,11 +138,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // Jersey Bookings Handlers
   const handleAddJerseyBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newJerseyBooking.name.trim()) return;
+    if (!newJerseyBooking.name.trim() || !newJerseyBooking.address.trim()) return;
     
     const item: JerseyBooking = {
       id: Date.now().toString(),
       name: newJerseyBooking.name.trim(),
+      address: newJerseyBooking.address.trim(),
+      quantity: newJerseyBooking.quantity,
       size: newJerseyBooking.size,
       sleeveType: newJerseyBooking.sleeveType,
       bookingDate: new Date().toISOString()
@@ -151,7 +153,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const res = await fetch('/api/jersey-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
-      setNewJerseyBooking({ name: '', size: 10, sleeveType: 'Half' });
+      setNewJerseyBooking({ name: '', address: '', quantity: 1, size: 10, sleeveType: 'Half' });
       showToast('जर्सी बुकिंग जोडली (Booking Added)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
@@ -1048,7 +1050,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="block font-semibold mb-1">नाव (Name)</label>
                 <input
@@ -1056,6 +1058,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   required
                   value={newJerseyBooking.name}
                   onChange={(e) => setNewJerseyBooking({...newJerseyBooking, name: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">पत्ता (Address)</label>
+                <input
+                  type="text"
+                  required
+                  value={newJerseyBooking.address}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, address: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">प्रमाण (Quantity)</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={newJerseyBooking.quantity}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, quantity: Number(e.target.value)})}
                   className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
                 />
               </div>
@@ -1131,6 +1156,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('पत्ता', 'Address')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('प्रमाण', 'Qty')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('साईझ', 'Size')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('स्लीव्ह', 'Sleeve')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
@@ -1144,6 +1171,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     .map((booking) => (
                     <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
+                      <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
+                      <td className="p-4 text-sm text-gray-900 text-center font-bold">{booking.quantity}</td>
                       <td className="p-4 text-sm font-bold text-[#FF9933]">{booking.size}</td>
                       <td className="p-4 text-sm text-gray-600">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</td>
                       <td className="p-4 text-right">

@@ -11,9 +11,10 @@ interface JerseyBookingPanelProps {
 export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings = [] }) => {
   const { t } = useLanguage();
   
-  // Booking Form State
   const [formData, setFormData] = useState({
     name: '',
+    address: '',
+    quantity: 1,
     size: 10,
     sleeveType: 'Half'
   });
@@ -40,6 +41,10 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
       setError(t('कृपया तुमचे नाव टाका.', 'Please enter your name.'));
       return;
     }
+    if (!formData.address.trim()) {
+      setError(t('कृपया तुमचा पत्ता टाका.', 'Please enter your address.'));
+      return;
+    }
 
     setIsSubmitting(true);
     setError('');
@@ -53,6 +58,8 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
         body: JSON.stringify({
           id: Date.now().toString(),
           name: formData.name.trim(),
+          address: formData.address.trim(),
+          quantity: formData.quantity,
           size: formData.size,
           sleeveType: formData.sleeveType,
           bookingDate: new Date().toISOString()
@@ -151,7 +158,7 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                   <button
                     onClick={() => {
                       setIsSuccess(false);
-                      setFormData({ name: '', size: 10, sleeveType: 'Half' });
+                      setFormData({ name: '', address: '', quantity: 1, size: 10, sleeveType: 'Half' });
                     }}
                     className="mt-4 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors cursor-pointer"
                   >
@@ -181,9 +188,24 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Address */}
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-bold text-gray-700">
+                      {t('पत्ता', 'Address')} <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={2}
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 resize-none"
+                      placeholder={t('तुमचा संपूर्ण पत्ता एंटर करा', 'Enter your full address')}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
                     {/* Size */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 col-span-1">
                       <label className="block text-sm font-bold text-gray-700">
                         {t('साईझ', 'Size')} <span className="text-red-500">*</span>
                       </label>
@@ -199,18 +221,34 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
                     </div>
 
                     {/* Sleeve Type */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-1.5 col-span-1">
                       <label className="block text-sm font-bold text-gray-700">
-                        {t('स्लीव्ह प्रकार', 'Sleeve Type')} <span className="text-red-500">*</span>
+                        {t('स्लीव्ह', 'Sleeve')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={formData.sleeveType}
                         onChange={(e) => setFormData({ ...formData, sleeveType: e.target.value })}
                         className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50 appearance-none cursor-pointer"
                       >
-                        <option value="Half">{t('हाफ (Half)', 'Half Sleeve')}</option>
-                        <option value="Full">{t('फुल (Full)', 'Full Sleeve')}</option>
+                        <option value="Half">{t('हाफ', 'Half')}</option>
+                        <option value="Full">{t('फुल', 'Full')}</option>
                       </select>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="space-y-1.5 col-span-1">
+                      <label className="block text-sm font-bold text-gray-700">
+                        {t('प्रमाण', 'Qty')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        required
+                        value={formData.quantity}
+                        onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#FF9933]/50 focus:border-[#FF9933] transition-all bg-gray-50/50"
+                      />
                     </div>
                   </div>
 
