@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, ShieldCheck } from 'lucide-react';
+import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, ShieldCheck, Download, MapPin } from 'lucide-react';
 import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
 
 // Add Razorpay to window object types
@@ -36,7 +36,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
   const [items, setItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
   const [currentItem, setCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [successData, setSuccessData] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'product' | 'checkout'>('product');
   const [error, setError] = useState('');
 
@@ -118,11 +118,12 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
         handler: async function (response: any) {
           try {
             // 4. On successful payment, save booking to database
+            const bookingId = Date.now().toString();
             const bookingResponse = await fetch('/api/jersey-bookings', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                id: Date.now().toString(),
+                id: bookingId,
                 name: formData.name.trim(),
                 address: formData.address.trim(),
                 items: items,
@@ -134,7 +135,13 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
 
             if (!bookingResponse.ok) throw new Error('Failed to submit booking after payment');
             
-            setIsSuccess(true);
+            setSuccessData({
+              id: bookingId,
+              paymentId: response.razorpay_payment_id,
+              name: formData.name.trim(),
+              address: formData.address.trim(),
+              items: items
+            });
           } catch (err) {
             setError(t('बुकिंग करण्यात त्रुटी आली. कृपया पुन्हा प्रयत्न करा.', 'Error in saving booking after payment.'));
           } finally {
@@ -190,33 +197,99 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
 
       <div className="relative z-10">
         <AnimatePresence mode="wait">
-          {isSuccess ? (
+          {successData ? (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center text-center space-y-4 py-16 bg-white rounded-3xl shadow-xl border border-gray-100"
+              className="flex flex-col items-center justify-center space-y-6 py-8"
             >
-              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-4">
-                <CheckCircle className="w-10 h-10" />
+              {/* Ticket UI */}
+              <div id="booking-ticket" className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-w-md w-full relative">
+                {/* Top Perforation / Banner */}
+                <div className="bg-[#FF9933] text-white p-6 text-center relative border-b-4 border-dashed border-white/50">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#FAF8F5] rounded-full"></div>
+                  
+                  <div className="w-16 h-16 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-green-500 shadow-inner">
+                    <CheckCircle className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-extrabold uppercase tracking-widest">{t('बुकिंग यशस्वी!', 'Booking Successful!')}</h3>
+                  <p className="text-white/90 text-sm mt-1">{t('अधिकृत जर्सी तिकीट', 'Official Jersey Ticket')}</p>
+                </div>
+                
+                {/* Details Section */}
+                <div className="p-8 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-white bg-opacity-95">
+                  <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('बुकिंग आयडी', 'Booking ID')}</p>
+                      <p className="text-lg font-black text-gray-900">#{successData.id.slice(-6)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('तारीख', 'Date')}</p>
+                      <p className="text-sm font-bold text-gray-800">{new Date().toLocaleDateString()}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">{t('ग्राहकाचे नाव', 'Customer Name')}</p>
+                    <p className="text-xl font-bold text-[#111111]">{successData.name}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2">{t('ऑर्डर तपशील', 'Order Details')}</p>
+                    <div className="space-y-2">
+                      {successData.items.map((item: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <span className="text-sm font-bold text-gray-700">
+                            Size {item.size} • {item.sleeveType === 'Half' ? 'Half' : 'Full'} Sleeve
+                          </span>
+                          <span className="bg-gray-200 text-gray-800 px-2 py-0.5 rounded text-xs font-bold">Qty: {item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('पेमेंट आयडी', 'Payment ID')}</p>
+                      <p className="text-xs font-mono text-gray-800 bg-gray-100 px-2 py-1 rounded mt-1">{successData.paymentId}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('नोंदणी शुल्क', 'Reg Fee')}</p>
+                      <p className="text-xl font-black text-[#FF9933]">₹10</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Perforation */}
+                <div className="bg-gray-50 p-4 border-t-4 border-dashed border-gray-200 text-center relative">
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-8 h-8 bg-[#FAF8F5] rounded-full"></div>
+                  <p className="text-xs text-gray-500 font-bold max-w-[200px] mx-auto">
+                    {t('कृपया तुमची जर्सी घेण्यासाठी हे तिकीट दाखवा.', 'Please present this ticket to collect your jersey.')}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900">
-                {t('बुकिंग यशस्वी!', 'Booking Successful!')}
-              </h3>
-              <p className="text-gray-600 text-lg">
-                {t('तुमची जर्सी यशस्वीरित्या बुक झाली आहे.', 'Your jersey has been booked.')}
-              </p>
-              <button
-                onClick={() => {
-                  setIsSuccess(false);
-                  setFormData({ name: '', address: '' });
-                  setItems([]);
-                  setCheckoutStep('product');
-                }}
-                className="mt-6 px-8 py-3 bg-gray-100 text-gray-700 rounded-xl text-lg font-bold hover:bg-gray-200 transition-colors cursor-pointer"
-              >
-                {t('आणखी एक बुक करा', 'Book Another')}
-              </button>
+
+              <div className="flex gap-4 w-full max-w-md">
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <Download className="w-4 h-4" />
+                  {t('तिकीट डाउनलोड करा', 'Save Ticket')}
+                </button>
+                <button
+                  onClick={() => {
+                    setSuccessData(null);
+                    setFormData({ name: '', address: '' });
+                    setItems([]);
+                    setCheckoutStep('product');
+                  }}
+                  className="flex-1 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
+                >
+                  {t('आणखी एक बुक करा', 'Book Another')}
+                </button>
+              </div>
             </motion.div>
           ) : checkoutStep === 'product' ? (
             <motion.div 
