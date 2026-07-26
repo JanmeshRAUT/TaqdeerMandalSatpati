@@ -22,8 +22,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
     });
 
   return (
-    <div className="min-h-[80vh] bg-[#FAF8F5] pt-32 pb-20 px-4 sm:px-6 lg:px-8 font-marathi">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#FAF8F5] pt-24 md:pt-32 pb-20 px-3 sm:px-6 lg:px-8 font-marathi flex flex-col items-center">
+      <div className="w-full max-w-[1920px] mx-auto flex-1 flex flex-col">
         <button
           onClick={() => {
             setActiveTab('home');
@@ -40,14 +40,14 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 sm:p-10"
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-8 lg:p-10 flex-1 flex flex-col"
         >
           <div className="flex items-center gap-4 mb-8 border-b border-gray-100 pb-6">
             <div className="w-16 h-16 bg-[#FF9933]/10 rounded-2xl flex items-center justify-center text-[#FF9933]">
               <Shirt className="w-8 h-8" />
             </div>
             <div>
-              <h2 className="text-3xl font-extrabold text-gray-900">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
                 {t('जर्सी बुकिंग यादी', 'Jersey Bookings List')}
               </h2>
               <p className="text-gray-500 font-medium mt-1">
@@ -77,23 +77,23 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm flex-1">
+            <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="p-5 text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
-                  <th className="p-5 text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32">{t('साईझ', 'Size')}</th>
-                  <th className="p-5 text-sm font-extrabold text-gray-700 uppercase tracking-wider w-40">{t('स्लीव्ह', 'Sleeve')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
+                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredAndSortedBookings.length > 0 ? (
                   filteredAndSortedBookings.map((booking) => (
                     <tr key={booking.id} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
-                      <td className="p-5 font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
-                      <td className="p-5 font-bold text-[#FF9933]">{booking.size}</td>
-                      <td className="p-5 text-gray-600 font-medium">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
+                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
+                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
+                      <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
+                        <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">
                           {booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}
                         </span>
                       </td>
@@ -113,12 +113,12 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             </table>
           </div>
           
-          <div className="mt-6 flex justify-between items-center">
-            <div className="text-sm font-bold text-gray-400">
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+            <div className="text-xs sm:text-sm font-bold text-gray-400">
               {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
             </div>
-            <div className="text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg">
-              {t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-[#FF9933] ml-1 text-base">{filteredAndSortedBookings.length}</span>
+            <div className="text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg whitespace-nowrap">
+              {t('एकूण बुकिंग:', 'Total Bookings:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{filteredAndSortedBookings.length}</span>
             </div>
           </div>
         </motion.div>
