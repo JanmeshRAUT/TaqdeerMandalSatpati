@@ -96,6 +96,14 @@ const AnnouncementSchema = new Schema({
   date: { type: String, required: true }
 });
 
+const JerseyBookingSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  size: { type: Number, required: true },
+  sleeveType: { type: String, required: true },
+  bookingDate: { type: String, required: true }
+});
+
 export const CommitteeMember = mongoose.model('CommitteeMember', CommitteeMemberSchema);
 export const DirectoryMember = mongoose.model('DirectoryMember', DirectoryMemberSchema);
 export const GalleryItem = mongoose.model('GalleryItem', GalleryItemSchema);
@@ -104,3 +112,4 @@ export const HistoryMilestone = mongoose.model('HistoryMilestone', HistoryMilest
 export const SocialActivity = mongoose.model('SocialActivity', SocialActivitySchema);
 export const Sponsor = mongoose.model('Sponsor', SponsorSchema);
 export const Announcement = mongoose.model('Announcement', AnnouncementSchema);
+export const JerseyBooking = mongoose.model('JerseyBooking', JerseyBookingSchema);

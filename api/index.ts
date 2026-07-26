@@ -6,7 +6,7 @@ import fs from 'fs';
 import connectDB from './config/db.js';
 import {
   Announcement, CommitteeMember, DirectoryMember, GalleryItem,
-  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor
+  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor, JerseyBooking
 } from './models/index.js';
 import {
   INITIAL_ANNOUNCEMENTS, INITIAL_COMMITTEE, INITIAL_MEMBERS,
@@ -122,6 +122,7 @@ app.use('/api/events', createRouter(EventScheduleItem));
 app.use('/api/milestones', createRouter(HistoryMilestone));
 app.use('/api/activities', createRouter(SocialActivity));
 app.use('/api/sponsors', createRouter(Sponsor));
+app.use('/api/jersey-bookings', createRouter(JerseyBooking));
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {

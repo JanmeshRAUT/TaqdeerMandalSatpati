@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { NavTab, Announcement } from '../types';
 import { CountdownWidget } from './CountdownWidget';
-import { motion } from 'framer-motion';
+import { JerseyBookingPanel } from './JerseyBookingPanel';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { 
   History, Image as ImageIcon, Sparkles, HeartHandshake, 
-  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight 
+  Calendar, ChevronRight, Award, Megaphone, Users, ShieldAlert, ArrowRight, MousePointer2 
 } from 'lucide-react';
 
 interface HomeSectionProps {
@@ -15,6 +16,10 @@ interface HomeSectionProps {
 
 export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announcements }) => {
   const { t } = useLanguage();
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 100]);
+  const y2 = useTransform(scrollY, [0, 500], [0, -100]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   const heroImages = [
     '/images/img1.jpeg',
@@ -56,7 +61,10 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
   };
 
   return (
-    <div className="space-y-16 py-6 sm:py-10 overflow-hidden">
+    <div className="space-y-16 py-6 sm:py-10 overflow-hidden relative">
+
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-[800px] bg-gradient-to-b from-[#FF9933]/5 to-transparent pointer-events-none -z-10" />
 
       {/* Live Announcement Marquee Banner (If any) */}
       {activeAnnouncements.length > 0 && (
@@ -88,14 +96,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
       )}
 
       {/* HERO SECTION */}
-      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+      <section className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 relative min-h-[85vh] flex items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center w-full">
           
           {/* Left Hero Content */}
           <motion.div 
             variants={staggerContainer}
             initial="hidden"
             animate="show"
+            style={{ y: y1 }}
             className="lg:col-span-7 space-y-6 text-center lg:text-left relative z-10"
           >
             
@@ -106,9 +115,9 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
 
             {/* Main Title */}
             <motion.div variants={fadeInUp} className="space-y-4">
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight font-marathi">
+              <h1 className="text-5xl sm:text-7xl lg:text-8xl font-extrabold leading-[1.1] tracking-tight font-marathi">
                 <span className="text-[#111111] drop-shadow-sm">{t('तकदीर मित्र मंडळ,', 'Taqdeer Mitra Mandal,')}</span><br />
-                <span className="text-gradient-saffron animate-gradient-shift">{t('सातपाटी', 'Satpati')}</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6A00] to-[#FF9933] drop-shadow-sm animate-gradient-shift">{t('सातपाटी', 'Satpati')}</span>
               </h1>
               <p className="text-2xl font-semibold text-gray-400 italic mb-6 font-marathi tracking-wide">
                 {t('श्रद्धा • सेवा • संस्कृती', 'Faith • Service • Culture')}
@@ -142,30 +151,26 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveTab('gallery')}
                 id="hero-btn-gallery"
-                className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer"
+                className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group"
               >
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                 <ImageIcon className="w-4 h-4 text-[#D4AF37]" />
                 <span>{t('फोटो गॅलरी', 'Photo Gallery')}</span>
               </motion.button>
             </motion.div>
 
-            {/* Prominent Hero Countdown Widget */}
-            <motion.div variants={fadeInUp} className="pt-2">
-              <CountdownWidget />
-            </motion.div>
-
             {/* Quick Badges */}
-            <motion.div variants={fadeInUp} className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-gray-500 font-medium">
+            <motion.div variants={fadeInUp} className="pt-8 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-gray-500 font-medium">
               <div className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
                 <span>{t('स्थापना: १९८१ (४५+ वर्षे)', 'Est. 1981 (45+ Years)')}</span>
               </div>
               <div className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#F59E0B]" />
                 <span>{t('पालघर जिल्हा, महाराष्ट्र', 'Palghar District, Maharashtra')}</span>
               </div>
               <div className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors">
-                <span className="w-2 h-2 rounded-full bg-[#FF9933]" />
+                <span className="w-2 h-2 rounded-full bg-[#FF9933] shadow-[0_0_8px_#FF9933]" />
                 <span>{t('पर्यावरणपूरक उत्सव', 'Eco-Friendly Celebrations')}</span>
               </div>
             </motion.div>
@@ -177,39 +182,41 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             variants={scaleUp}
             initial="hidden"
             animate="show"
+            style={{ y: y2 }}
             className="lg:col-span-5 flex justify-center relative"
           >
             {/* Background Glow */}
             <div className="absolute inset-0 bg-[#FF6A00]/20 blur-[100px] rounded-full animate-float-delayed pointer-events-none" />
             
-            <div className="relative z-10 w-full h-[460px] sm:h-[500px] bg-black rounded-3xl shadow-2xl overflow-hidden border border-[#FAF8F5] group">
+            <div className="relative z-10 w-full h-[500px] sm:h-[600px] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500">
               {heroImages.map((src, index) => (
                 <img
                   key={src}
                   src={src}
                   alt="Lord Ganesha Idol Satpati"
-                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1500ms] ease-in-out ${
-                    index === currentHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-[2000ms] ease-in-out ${
+                    index === currentHeroIndex ? 'opacity-100 scale-105' : 'opacity-0 scale-110'
                   }`}
                   referrerPolicy="no-referrer"
                 />
               ))}
               
               {/* Divine Overlay Tag */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/90 via-[#111111]/30 to-transparent flex flex-col justify-end p-8 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/95 via-[#111111]/40 to-transparent flex flex-col justify-end p-8 text-white">
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-xs font-bold uppercase tracking-widest text-[#FF6A00] mb-1 drop-shadow-md"
+                  className="text-xs font-bold uppercase tracking-widest text-[#FF6A00] mb-1 drop-shadow-md flex items-center gap-2"
                 >
+                  <span className="w-2 h-2 rounded-full bg-[#FF6A00] animate-pulse" />
                   {t('मुख्य आकर्षण • श्री गणेशोत्सव', 'MAIN ATTRACTION • SHREE GANESHOTSAV')}
                 </motion.p>
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="text-2xl sm:text-3xl font-semibold font-marathi"
+                  className="text-3xl sm:text-4xl font-extrabold font-marathi drop-shadow-lg"
                 >
                   {t('श्री गणेश दर्शन २०२६', 'Shree Ganesh Darshan 2026')}
                 </motion.p>
@@ -217,7 +224,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.7 }}
-                  className="text-xs text-gray-300 mt-1 font-marathi"
+                  className="text-sm text-gray-300 mt-2 font-marathi"
                 >
                   {t('📍 सातपाटी बंदर, पालघर', '📍 Satpati Bandar, Palghar')}
                 </motion.p>
@@ -226,7 +233,36 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
           </motion.div>
 
         </div>
+        
+        {/* Scroll Indicator */}
+        <motion.div 
+          style={{ opacity }}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400"
+        >
+          <span className="text-[10px] uppercase tracking-widest font-bold font-marathi">{t('खाली स्क्रोल करा', 'SCROLL DOWN')}</span>
+          <MousePointer2 className="w-5 h-5 animate-bounce text-[#FF9933]" />
+        </motion.div>
       </section>
+
+      {/* Prominent Hero Countdown Widget */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-10"
+      >
+        <CountdownWidget />
+      </motion.div>
+
+      {/* JERSEY BOOKING PANEL */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <JerseyBookingPanel />
+      </motion.div>
 
       {/* STATS METRICS FEATURE BAR */}
       <motion.section 
@@ -301,14 +337,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
           className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
         >
           {/* Pillar 1: Religious Sanctity */}
-          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover-glow cursor-default transition-all duration-300">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-[#D4AF37]/30 flex items-center justify-center text-[#FF6A00] shadow-sm">
+          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover-glow cursor-default transition-all duration-300 border border-[#D4AF37]/20 relative group overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-[#D4AF37]/30 flex items-center justify-center text-[#FF6A00] shadow-sm relative z-10">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 font-marathi">
+            <h3 className="text-xl font-bold text-gray-900 font-marathi relative z-10">
               {t('श्रद्धा व पारंपारिक पूजा', 'Faith & Religious Sanctity')}
             </h3>
-            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium">
+            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium relative z-10">
               {t(
                 'शास्त्रोक्त पद्धतीने श्रींची स्थापना, नित्य महाआरती, भजनाचे कार्यक्रम आणि सातपाटी गावातील सर्व धर्मीय भाविकांचे मंगलमय वातावरण.',
                 'Vedic rituals, daily Maha Aarti, devotional bhajans, and harmonious spiritual celebrations.'
@@ -316,7 +353,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             </p>
             <button
               onClick={() => setActiveTab('events')}
-              className="text-xs font-bold text-[#FF6A00] hover:text-[#D4AF37] flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#FF6A00] hover:text-[#D4AF37] flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer relative z-10"
             >
               <span>{t('उत्सव कार्यक्रम पहा', 'View Event Schedule')}</span>
               <ChevronRight className="w-4 h-4" />
@@ -324,14 +361,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
           </motion.div>
 
           {/* Pillar 2: Social Service */}
-          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-300">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 flex items-center justify-center text-emerald-600 shadow-sm">
+          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all duration-300 border border-emerald-500/20 relative group overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/50 flex items-center justify-center text-emerald-600 shadow-sm relative z-10">
               <HeartHandshake className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 font-marathi">
+            <h3 className="text-xl font-bold text-gray-900 font-marathi relative z-10">
               {t('समाजसेवा व जनकल्याण', 'Social Welfare & Community')}
             </h3>
-            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium">
+            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium relative z-10">
               {t(
                 'महारक्तदान शिबिर, मोफत आरोग्य तपासणी, विद्यार्थी शैक्षणिक मदत, धान्य वाटप आणि सातपाटी समुद्रकिनारा स्वच्छता मोहीम.',
                 'Blood donation drives, free medical checkups, student scholarships, grain kits, and beach cleanup drives.'
@@ -339,7 +377,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             </p>
             <button
               onClick={() => setActiveTab('social')}
-              className="text-xs font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer"
+              className="text-xs font-bold text-emerald-600 hover:text-emerald-500 flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer relative z-10"
             >
               <span>{t('सामाजिक उपक्रम पहा', 'View Social Initiatives')}</span>
               <ChevronRight className="w-4 h-4" />
@@ -347,14 +385,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
           </motion.div>
 
           {/* Pillar 3: Cultural Legacy */}
-          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/50 flex items-center justify-center text-[#D4AF37] shadow-sm">
+          <motion.div variants={fadeInUp} whileHover={{ y: -8 }} className="p-8 rounded-2xl glass-card space-y-4 hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300 border border-amber-500/20 relative group overflow-hidden">
+             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/50 flex items-center justify-center text-[#D4AF37] shadow-sm relative z-10">
               <Award className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 font-marathi">
+            <h3 className="text-xl font-bold text-gray-900 font-marathi relative z-10">
               {t('संस्कृती व युवा संघटन', 'Culture & Youth Leadership')}
             </h3>
-            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium">
+            <p className="text-sm text-gray-500 leading-relaxed font-marathi font-medium relative z-10">
               {t(
                 'स्थानिक कलावंतांना वाव, पारंपारिक खेळ, महिलांसाठी मंगळागौरी स्पर्धा व तरुण पिढीमध्ये संस्कृतीचे संस्कार रुजविण्याचे कार्य.',
                 'Empowering local folk artists, traditional sports, women’s cultural contests, and youth leadership development.'
@@ -362,7 +401,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             </p>
             <button
               onClick={() => setActiveTab('committee')}
-              className="text-xs font-bold text-[#D4AF37] hover:text-[#B38B22] flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#D4AF37] hover:text-[#B38B22] flex items-center gap-1 font-marathi pt-2 transition-colors cursor-pointer relative z-10"
             >
               <span>{t('कार्यकारिणी भेटा', 'Meet Committee')}</span>
               <ChevronRight className="w-4 h-4" />
