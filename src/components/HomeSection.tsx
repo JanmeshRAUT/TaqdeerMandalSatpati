@@ -23,10 +23,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   const heroImages = [
-    '/images/img1.jpeg',
-    '/images/img5.jpeg',
-    '/images/img6.jpeg',
-    '/images/img7.jpeg',
+    '/images/Tshirt1.png',
+    '/images/Tshirt2.png',
   ];
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
@@ -205,29 +203,29 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             {/* Background Glow */}
             <div className="absolute inset-0 bg-[#FF6A00]/20 blur-[100px] rounded-full animate-float-delayed pointer-events-none" />
             
-            <div className="relative z-10 w-full h-[380px] sm:h-[460px] bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500">
+            <div className="relative z-10 w-full h-[380px] sm:h-[460px] bg-gradient-to-br from-[#FAF8F5] to-gray-100 rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500 flex items-center justify-center">
               {heroImages.map((src, index) => (
                 <img
                   key={src}
                   src={src}
-                  alt="Lord Ganesha Idol Satpati"
-                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-[2000ms] ease-in-out ${
-                    index === currentHeroIndex ? 'opacity-100 scale-105' : 'opacity-0 scale-110'
+                  alt="Taqdeer Mandal Official Jersey"
+                  className={`absolute w-full h-full object-contain p-8 transition-all duration-[2000ms] ease-in-out ${
+                    index === currentHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                   }`}
                   referrerPolicy="no-referrer"
                 />
               ))}
               
-              {/* Divine Overlay Tag */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/95 via-[#111111]/40 to-transparent flex flex-col justify-end p-8 text-white">
+              {/* Overlay Tag */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/80 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-xs font-bold uppercase tracking-widest text-[#FF6A00] mb-1 drop-shadow-md flex items-center gap-2"
+                  className="text-xs font-bold uppercase tracking-widest text-[#FF9933] mb-1 drop-shadow-md flex items-center gap-2"
                 >
-                  <span className="w-2 h-2 rounded-full bg-[#FF6A00] animate-pulse" />
-                  {t('मुख्य आकर्षण • श्री गणेशोत्सव', 'MAIN ATTRACTION • SHREE GANESHOTSAV')}
+                  <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse" />
+                  {t('मुख्य आकर्षण • २०२६ उत्सव', 'CENTER OF ATTRACTION • 2026 FESTIVAL')}
                 </motion.p>
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }}
@@ -235,15 +233,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                   transition={{ delay: 0.6 }}
                   className="text-3xl sm:text-4xl font-extrabold font-marathi drop-shadow-lg"
                 >
-                  {t('श्री गणेश दर्शन २०२६', 'Shree Ganesh Darshan 2026')}
+                  {t('मंडळाची अधिकृत जर्सी', 'Official Mandal Jersey')}
                 </motion.p>
                 <motion.p 
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.7 }}
-                  className="text-sm text-gray-300 mt-2 font-marathi"
+                  className="text-sm text-gray-200 mt-2 font-marathi font-medium"
                 >
-                  {t('📍 सातपाटी बंदर, पालघर', '📍 Satpati Bandar, Palghar')}
+                  {t('आता बुकिंगसाठी उपलब्ध!', 'Now available for booking!')}
                 </motion.p>
               </div>
             </div>

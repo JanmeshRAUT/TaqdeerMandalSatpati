@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shirt, CheckCircle, Loader2 } from 'lucide-react';
@@ -20,6 +20,17 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  // Image Slider State
+  const jerseyImages = ['/images/Tshirt1.png', '/images/Tshirt2.png'];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % jerseyImages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   const sizes = Array.from({ length: 21 }, (_, i) => 10 + i * 2);
 
@@ -86,20 +97,34 @@ export const JerseyBookingPanel: React.FC<JerseyBookingPanelProps> = ({ bookings
               {t('आगामी गणेशोत्सवासाठी तकदीर मित्र मंडळाची खास डिझाइन केलेली जर्सी आजच बुक करा.', 'Pre-book our exclusively designed Taqdeer Mitra Mandal jersey for the upcoming festival.')}
             </p>
 
-            <div className="flex justify-center md:justify-start gap-4">
-              <div className="bg-white p-2 rounded-2xl border border-gray-200 shadow-2xs rotate-[-2deg] hover:rotate-0 transition-transform">
-                <img 
-                  src="/images/Tshirt1.png" 
-                  alt="Taqdeer Mandal Jersey Front" 
-                  className="w-32 h-auto object-cover rounded-xl"
-                />
-              </div>
-              <div className="bg-white p-2 rounded-2xl border border-gray-200 shadow-2xs rotate-[2deg] hover:rotate-0 transition-transform">
-                <img 
-                  src="/images/Tshirt2.png" 
-                  alt="Taqdeer Mandal Jersey Back" 
-                  className="w-32 h-auto object-cover rounded-xl"
-                />
+            <div className="flex justify-center md:justify-start">
+              <div className="bg-white p-4 rounded-3xl border border-gray-200 shadow-xl relative w-full max-w-[280px] aspect-[4/5] overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#FF9933]/10 to-transparent z-0"></div>
+                
+                {jerseyImages.map((src, index) => (
+                  <img 
+                    key={src}
+                    src={src} 
+                    alt="Taqdeer Mandal Jersey" 
+                    className={`absolute inset-0 w-full h-full object-contain p-4 transition-all duration-1000 ease-in-out z-10 ${
+                      index === currentImageIndex 
+                        ? 'opacity-100 translate-x-0 scale-100' 
+                        : 'opacity-0 translate-x-8 scale-95'
+                    }`}
+                  />
+                ))}
+                
+                {/* Image indicators */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                  {jerseyImages.map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        idx === currentImageIndex ? 'bg-[#FF9933] w-6' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
