@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { CommitteeMember } from '../types';
+import { motion } from 'framer-motion';
 import { ShieldCheck, Phone, MessageCircle, Clock, Users } from 'lucide-react';
 
 interface CommitteeSectionProps {
@@ -10,11 +11,29 @@ interface CommitteeSectionProps {
 export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMembers }) => {
   const { t } = useLanguage();
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
+  };
+
   return (
     <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 py-12 space-y-16 font-marathi">
       
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-4">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="text-center max-w-2xl mx-auto space-y-4"
+      >
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF8F5] border border-[#C89B3C]/30 text-xs font-semibold text-[#FF9933] shadow-2xs">
           <ShieldCheck className="w-4 h-4 text-[#FF9933]" />
           <span>{t('पदाधिकारी व कार्यसमिती', 'Office Bearers & Executive Body')}</span>
@@ -30,14 +49,21 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
             'Executive Office Bearers leading Taqdeer Mitra Mandal, Satpati.'
           )}
         </p>
-      </div>
+      </motion.div>
 
       {/* Office Bearers Grid (1 Col Mobile, 2 Col Tablet, 3 Col Desktop) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-50px" }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10"
+      >
         {committeeMembers.map((member) => (
-          <div
+          <motion.div
+            variants={itemVariants}
             key={member.id}
-            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col items-center text-center space-y-4 group relative overflow-hidden"
+            className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center space-y-4 group relative overflow-hidden"
           >
             {/* Soft subtle glow accent on top */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#FF9933] via-[#C89B3C] to-[#FF9933] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -62,7 +88,7 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
             {/* Name Details */}
             <div className="space-y-1 pt-1">
               {/* Primary Name in Marathi */}
-              <h3 className="text-xl sm:text-2xl font-bold text-[#111111] tracking-tight">
+              <h3 className="text-xl sm:text-2xl font-bold text-[#111111] tracking-tight group-hover:text-[#FF9933] transition-colors">
                 {t(member.nameMr, member.nameEn)}
               </h3>
               {/* Secondary Name in English */}
@@ -73,7 +99,7 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
 
             {/* Designation Badge */}
             <div className="pt-1">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold bg-[#FAF8F5] text-[#FF9933] border border-[#C89B3C]/30 shadow-2xs">
+              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold bg-[#FAF8F5] text-[#FF9933] border border-[#C89B3C]/30 shadow-2xs group-hover:bg-[#FF9933] group-hover:text-white transition-colors duration-300">
                 {t(member.roleMr, member.roleEn)}
               </span>
             </div>
@@ -86,15 +112,19 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
             {/* Quick Contact Action Buttons */}
             {member.phone && (
               <div className="pt-3 w-full flex items-center justify-center gap-3 border-t border-gray-100">
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   href={`tel:${member.phone}`}
                   className="px-4 py-2 rounded-xl bg-[#FAF8F5] hover:bg-gray-100 text-gray-700 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-gray-200"
                 >
                   <Phone className="w-3.5 h-3.5 text-[#FF9933]" />
                   <span>{t('संपर्क', 'Call')}</span>
-                </a>
+                </motion.a>
 
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   href={`https://wa.me/${member.phone.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -102,19 +132,29 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                   <span>WhatsApp</span>
-                </a>
+                </motion.a>
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* COMING SOON / PLACEHOLDER FOR OTHER COMMITTEE DIVISIONS */}
-      <div className="pt-10">
-        <div className="bg-[#FAF8F5] border border-dashed border-[#C89B3C]/40 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto space-y-4">
-          <div className="w-14 h-14 rounded-full bg-white border border-[#C89B3C]/30 flex items-center justify-center text-[#FF9933] mx-auto shadow-2xs">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.2 }}
+        className="pt-10"
+      >
+        <div className="bg-[#FAF8F5] border border-dashed border-[#C89B3C]/40 rounded-3xl p-8 sm:p-12 text-center max-w-4xl mx-auto space-y-4 hover:border-[#FF9933] transition-colors duration-300">
+          <motion.div 
+            whileHover={{ rotate: 180 }}
+            transition={{ duration: 0.6 }}
+            className="w-14 h-14 rounded-full bg-white border border-[#C89B3C]/30 flex items-center justify-center text-[#FF9933] mx-auto shadow-2xs cursor-pointer"
+          >
             <Clock className="w-7 h-7" />
-          </div>
+          </motion.div>
 
           <div className="space-y-2">
             <h3 className="text-xl sm:text-2xl font-bold text-[#111111]">
@@ -133,7 +173,7 @@ export const CommitteeSection: React.FC<CommitteeSectionProps> = ({ committeeMem
             <span>{t('सातपाटी ग्रामस्थ व कार्यकर्ते सहभाग', 'Satpati Volunteers & Community Participation')}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
     </div>
   );
