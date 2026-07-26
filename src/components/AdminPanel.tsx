@@ -113,14 +113,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const saved = await res.json();
       setAnnouncements([saved, ...announcements]);
       setNewAnnouncement({ textMr: '', textEn: '', isActive: true });
-    } catch (e) { console.error(e); }
+      showToast('सूचना जोडली (Announcement Added)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
     try {
       await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
       setAnnouncements(announcements.filter(a => a.id !== id));
-    } catch (e) { console.error(e); }
+      showToast('सूचना डिलीट केली (Announcement Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
   // Add or Edit Committee Member
@@ -135,7 +137,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         setCommittee(committee.map(c => c.id === editingCommitteeId ? updated : c));
         setEditingCommitteeId(null);
         setNewCommittee({ nameMr: '', nameEn: '', roleMr: '', roleEn: '', termYear: '2026-2027', photoUrl: '', phone: '' });
-      } catch (e) { console.error(e); }
+        showToast('कार्यकारिणी सदस्य अद्ययावत केले (Committee Member Updated)');
+      } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
     } else {
       const item: CommitteeMember = {
         id: 'cm-' + Date.now(),
@@ -153,7 +156,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         const saved = await res.json();
         setCommittee([...committee, saved]);
         setNewCommittee({ nameMr: '', nameEn: '', roleMr: '', roleEn: '', termYear: '2026-2027', photoUrl: '', phone: '' });
-      } catch (e) { console.error(e); }
+        showToast('नवीन कार्यकारिणी सदस्य जोडला (Committee Member Added)');
+      } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
     }
   };
 
@@ -175,7 +179,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       await fetch(`/api/committee/${id}`, { method: 'DELETE' });
       setCommittee(committee.filter(c => c.id !== id));
-    } catch (e) { console.error(e); }
+      showToast('कार्यकारिणी सदस्य डिलीट केला (Committee Member Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
   // Add or Edit Member
@@ -190,7 +195,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         setMembers(members.map(m => m.id === editingMemberId ? updated : m));
         setEditingMemberId(null);
         setNewMember({ nameMr: '', nameEn: '', joinedYear: 2026, bloodGroup: '', phone: '', locationMr: '', locationEn: '', photoUrl: '', isLifetimeMember: false });
-      } catch (e) { console.error(e); }
+        showToast('सभासद माहिती अद्ययावत केली (Member Updated)');
+      } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
     } else {
       const item: DirectoryMember = {
         id: 'mem-' + Date.now(),
@@ -209,7 +215,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         const saved = await res.json();
         setMembers([...members, saved]);
         setNewMember({ nameMr: '', nameEn: '', joinedYear: 2026, bloodGroup: '', phone: '', locationMr: '', locationEn: '', photoUrl: '', isLifetimeMember: false });
-      } catch (e) { console.error(e); }
+        showToast('नवीन सभासद जोडला (Member Added)');
+      } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
     }
   };
 
@@ -233,7 +240,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       await fetch(`/api/members/${id}`, { method: 'DELETE' });
       setMembers(members.filter(m => m.id !== id));
-    } catch (e) { console.error(e); }
+      showToast('सभासद डिलीट केला (Member Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
   // Add or Edit Gallery Item
@@ -296,7 +304,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       await fetch(`/api/events/${id}`, { method: 'DELETE' });
       setEvents(events.filter(e => e.id !== id));
-    } catch (e) { console.error(e); }
+      showToast('कार्यक्रम डिलीट केला (Event Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
   // Export JSON Backup
