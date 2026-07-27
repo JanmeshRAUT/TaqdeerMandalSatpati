@@ -20,8 +20,60 @@ const PORT = process.env.PORT || 3001;
 // Connect to MongoDB
 connectDB();
 
-app.use(cors());
+// CORS options setup to restrict access in production
+const corsOptions = {
+  origin: (origin: any, callback: any) => {
+    // Allow same-origin requests or server-to-server requests
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      process.env.APP_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173'
+    ].filter(Boolean);
+
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed === origin) return true;
+      try {
+        const allowedHost = new URL(allowed).hostname;
+        const originHost = new URL(origin).hostname;
+        return originHost === allowedHost || originHost.endsWith('.' + allowedHost);
+      } catch (e) {
+        return false;
+      }
+    });
+
+    if (isAllowed || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
+
+// Auth Utilities
+const getAdminPin = () => process.env.ADMIN_PIN || 'Taqdeer1981';
+
+const isAdmin = (req: express.Request): boolean => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+  const token = authHeader.substring(7);
+  return token === getAdminPin();
+};
+
+const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (!isAdmin(req)) {
+    return res.status(401).json({ message: 'Unauthorized: Admin access required' });
+  }
+  next();
+};
 
 // Vercel read-only filesystem fix: Removed local /uploads directory creation.
 // We are using memoryStorage and Base64 Data URIs, so local disk storage is not required.
@@ -55,8 +107,20 @@ seedDatabase();
 
 // --- API Routes ---
 
-// Image Upload Route
-app.post('/api/upload', upload.single('image'), (req, res) => {
+// Auth Verification Route
+app.post('/api/auth/verify', (req, res) => {
+  const { pin } = req.body;
+  if (!pin) {
+    return res.status(400).json({ success: false, message: 'PIN is required' });
+  }
+  if (pin === getAdminPin()) {
+    return res.json({ success: true });
+  }
+  res.status(401).json({ success: false, message: 'Invalid PIN' });
+});
+
+// Image Upload Route - Requires Admin Auth
+app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
@@ -70,17 +134,90 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 
 const createRouter = (Model: any) => {
   const router = express.Router();
+  
+  // GET: Public read, but masks/redacts PII if not admin
   router.get('/', async (req, res) => {
     try {
       const data = await Model.find();
+      const isUserAdmin = isAdmin(req);
+      
+      if (!isUserAdmin) {
+        if (Model.modelName === 'DirectoryMember') {
+          const sanitized = data.map((item: any) => {
+            const doc = item.toObject();
+            // Mask phone number (e.g. +91 ********56)
+            if (doc.phone) {
+              const phoneStr = String(doc.phone);
+              doc.phone = phoneStr.length > 4 
+                ? phoneStr.substring(0, 3) + '*****' + phoneStr.substring(phoneStr.length - 2)
+                : '*****';
+            }
+            // Omit bloodGroup for non-admin
+            delete doc.bloodGroup;
+            return doc;
+          });
+          return res.json(sanitized);
+        }
+        
+        if (Model.modelName === 'JerseyBooking') {
+          const sanitized = data.map((item: any) => {
+            const doc = item.toObject();
+            // Omit address and phone completely from public view
+            delete doc.address;
+            delete doc.phone;
+            return doc;
+          });
+          return res.json(sanitized);
+        }
+      }
+      
       res.json(data);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
   
+  // POST: Enforces auth for all except public JerseyBooking creation (with whitelisting)
   router.post('/', async (req, res) => {
     try {
+      const isUserAdmin = isAdmin(req);
+      
+      if (Model.modelName === 'JerseyBooking') {
+        const { id, name, address, phone, items, bookingDate, status } = req.body;
+        
+        // Strict input validation
+        if (!name || !address || !phone || !items || !Array.isArray(items) || items.length === 0) {
+          return res.status(400).json({ message: 'Missing required booking fields or empty items.' });
+        }
+        
+        // Public cannot verify bookings, force 'Pending' status. Admins can specify status.
+        const finalStatus = isUserAdmin && status ? status : 'Pending';
+        
+        const cleanBooking = {
+          id: id || 'jb-' + Date.now(),
+          name: String(name).trim().substring(0, 100),
+          address: String(address).trim().substring(0, 500),
+          phone: String(phone).trim().substring(0, 20),
+          items: items.map((itm: any) => ({
+            id: itm.id || String(Date.now() + Math.random()),
+            size: Number(itm.size),
+            sleeveType: String(itm.sleeveType),
+            quantity: Math.max(1, Math.min(50, Number(itm.quantity) || 1))
+          })),
+          bookingDate: bookingDate || new Date().toISOString(),
+          status: finalStatus
+        };
+        
+        const newItem = new Model(cleanBooking);
+        const savedItem = await newItem.save();
+        return res.status(201).json(savedItem);
+      }
+      
+      // All other resource creates require Admin auth
+      if (!isUserAdmin) {
+        return res.status(401).json({ message: 'Unauthorized: Admin access required' });
+      }
+      
       const newItem = new Model(req.body);
       const savedItem = await newItem.save();
       res.status(201).json(savedItem);
@@ -89,7 +226,8 @@ const createRouter = (Model: any) => {
     }
   });
 
-  router.delete('/:id', async (req, res) => {
+  // DELETE: Always require admin auth
+  router.delete('/:id', requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const result = await Model.findOneAndDelete({ id: id });
@@ -100,7 +238,8 @@ const createRouter = (Model: any) => {
     }
   });
   
-  router.put('/:id', async (req, res) => {
+  // PUT: Always require admin auth
+  router.put('/:id', requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const result = await Model.findOneAndUpdate({ id: id }, req.body, { new: true });
@@ -131,3 +270,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default app;
+

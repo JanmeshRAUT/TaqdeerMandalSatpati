@@ -41,6 +41,10 @@ function AppContent() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  const [adminPin, setAdminPin] = useState<string | null>(() => {
+    return localStorage.getItem('admin_pin');
+  });
+
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [committee, setCommittee] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -54,16 +58,20 @@ function AppContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const headers: HeadersInit = {};
+        if (adminPin) {
+          headers['Authorization'] = `Bearer ${adminPin}`;
+        }
         const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes] = await Promise.all([
-          fetch('/api/announcements').then(r => r.json()),
-          fetch('/api/committee').then(r => r.json()),
-          fetch('/api/members').then(r => r.json()),
-          fetch('/api/gallery').then(r => r.json()),
-          fetch('/api/events').then(r => r.json()),
-          fetch('/api/milestones').then(r => r.json()),
-          fetch('/api/activities').then(r => r.json()),
-          fetch('/api/sponsors').then(r => r.json()),
-          fetch('/api/jersey-bookings').then(r => r.json())
+          fetch('/api/announcements', { headers }).then(r => r.json()),
+          fetch('/api/committee', { headers }).then(r => r.json()),
+          fetch('/api/members', { headers }).then(r => r.json()),
+          fetch('/api/gallery', { headers }).then(r => r.json()),
+          fetch('/api/events', { headers }).then(r => r.json()),
+          fetch('/api/milestones', { headers }).then(r => r.json()),
+          fetch('/api/activities', { headers }).then(r => r.json()),
+          fetch('/api/sponsors', { headers }).then(r => r.json()),
+          fetch('/api/jersey-bookings', { headers }).then(r => r.json())
         ]);
         setAnnouncements(annRes);
         setCommittee(comRes);
@@ -79,7 +87,7 @@ function AppContent() {
       }
     };
     fetchData();
-  }, []);
+  }, [adminPin]);
 
   const resetAllData = () => {
     // Note: To fully reset in DB, you would need an endpoint to drop collections
@@ -175,9 +183,12 @@ function AppContent() {
             jerseyBookings={jerseyBookings}
             setJerseyBookings={setJerseyBookings}
             resetAllData={resetAllData}
+            adminPin={adminPin}
+            setAdminPin={setAdminPin}
           />
         )}
       </main>
+
 
       {/* Footer */}
       <Footer setActiveTab={setActiveTab} />

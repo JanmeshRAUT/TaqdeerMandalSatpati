@@ -33,6 +33,8 @@ interface AdminPanelProps {
   jerseyBookings: JerseyBooking[];
   setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
   resetAllData: () => void;
+  adminPin: string | null;
+  setAdminPin: (pin: string | null) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -44,12 +46,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   activities, setActivities,
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
-  resetAllData
+  resetAllData,
+  adminPin, setAdminPin
 }) => {
   const { t } = useLanguage();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!adminPin);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [activeTab, setActiveTab] = useState<'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'backup'>('announcements');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -58,14 +62,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Simple PIN verification
-  const handleLogin = (e: React.FormEvent) => {
+  // PIN verification via server API
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === 'Taqdeer1981') {
-      setIsAuthenticated(true);
-      setPinError(false);
-    } else {
+    setIsLoggingIn(true);
+    setPinError(false);
+    try {
+      const res = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinInput })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        localStorage.setItem('admin_pin', pinInput);
+        setAdminPin(pinInput);
+        setIsAuthenticated(true);
+      } else {
+        setPinError(true);
+      }
+    } catch (err) {
       setPinError(true);
+      console.error(err);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -99,7 +119,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     
     setIsUploadingGallery(true);
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: formData
+      });
       const data = await res.json();
       if (data.url) setNewGallery({ ...newGallery, imageUrl: data.url });
     } catch (err) {
@@ -121,7 +147,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       date: new Date().toISOString().split('T')[0]
     };
     try {
-      const res = await fetch('/api/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+      const res = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(item)
+      });
       const saved = await res.json();
       setAnnouncements([saved, ...announcements]);
       setNewAnnouncement({ textMr: '', textEn: '', isActive: true });
@@ -131,7 +164,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteAnnouncement = async (id: string) => {
     try {
-      await fetch(`/api/announcements/${id}`, { method: 'DELETE' });
+      await fetch(`/api/announcements/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setAnnouncements(announcements.filter(a => a.id !== id));
       showToast('सूचना डिलीट केली (Announcement Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -163,7 +201,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       bookingDate: new Date().toISOString()
     };
     try {
-      const res = await fetch('/api/jersey-bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+      const res = await fetch('/api/jersey-bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(item)
+      });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
       setNewJerseyBooking({ name: '', address: '', phone: '' });
@@ -174,7 +219,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteJerseyBooking = async (id: string) => {
     try {
-      await fetch(`/api/jersey-bookings/${id}`, { method: 'DELETE' });
+      await fetch(`/api/jersey-bookings/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setJerseyBookings(jerseyBookings.filter(b => b.id !== id));
       showToast('बुकिंग डिलीट केली (Booking Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -185,7 +235,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     try {
       const res = await fetch(`/api/jersey-bookings/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
@@ -204,7 +257,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     if (editingCommitteeId) {
       try {
-        const res = await fetch(`/api/committee/${editingCommitteeId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newCommittee) });
+        const res = await fetch(`/api/committee/${editingCommitteeId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(newCommittee)
+        });
         const updated = await res.json();
         setCommittee(committee.map(c => c.id === editingCommitteeId ? updated : c));
         setEditingCommitteeId(null);
@@ -224,7 +284,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         order: committee.length + 1
       };
       try {
-        const res = await fetch('/api/committee', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+        const res = await fetch('/api/committee', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(item)
+        });
         const saved = await res.json();
         setCommittee([...committee, saved]);
         setNewCommittee({ nameMr: '', nameEn: '', roleMr: '', roleEn: '', termYear: '2026-2027', photoUrl: '', phone: '' });
@@ -249,7 +316,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteCommittee = async (id: string) => {
     try {
-      await fetch(`/api/committee/${id}`, { method: 'DELETE' });
+      await fetch(`/api/committee/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setCommittee(committee.filter(c => c.id !== id));
       showToast('कार्यकारिणी सदस्य डिलीट केला (Committee Member Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -262,7 +334,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     if (editingMemberId) {
       try {
-        const res = await fetch(`/api/members/${editingMemberId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newMember) });
+        const res = await fetch(`/api/members/${editingMemberId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(newMember)
+        });
         const updated = await res.json();
         setMembers(members.map(m => m.id === editingMemberId ? updated : m));
         setEditingMemberId(null);
@@ -283,7 +362,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         isLifetimeMember: newMember.isLifetimeMember
       };
       try {
-        const res = await fetch('/api/members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+        const res = await fetch('/api/members', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(item)
+        });
         const saved = await res.json();
         setMembers([...members, saved]);
         setNewMember({ nameMr: '', nameEn: '', joinedYear: 2026, bloodGroup: '', phone: '', locationMr: '', locationEn: '', photoUrl: '', isLifetimeMember: false });
@@ -310,7 +396,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteMember = async (id: string) => {
     try {
-      await fetch(`/api/members/${id}`, { method: 'DELETE' });
+      await fetch(`/api/members/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setMembers(members.filter(m => m.id !== id));
       showToast('सभासद डिलीट केला (Member Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -323,7 +414,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     
     if (editingGalleryId) {
       try {
-        const res = await fetch(`/api/gallery/${editingGalleryId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newGallery) });
+        const res = await fetch(`/api/gallery/${editingGalleryId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(newGallery)
+        });
         const updated = await res.json();
         setGallery(gallery.map(g => g.id === editingGalleryId ? updated : g));
         setEditingGalleryId(null);
@@ -341,7 +439,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         imageUrl: newGallery.imageUrl
       };
       try {
-        const res = await fetch('/api/gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+        const res = await fetch('/api/gallery', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminPin}`
+          },
+          body: JSON.stringify(item)
+        });
         const saved = await res.json();
         setGallery([saved, ...gallery]);
         setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '' });
@@ -366,7 +471,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteGallery = async (id: string) => {
     try {
-      await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
+      await fetch(`/api/gallery/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setGallery(gallery.filter(g => g.id !== id));
       showToast('फोटो डिलीट केला (Photo Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -374,7 +484,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await fetch(`/api/events/${id}`, { method: 'DELETE' });
+      await fetch(`/api/events/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
       setEvents(events.filter(e => e.id !== id));
       showToast('कार्यक्रम डिलीट केला (Event Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -476,7 +591,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={() => {
+              localStorage.removeItem('admin_pin');
+              setAdminPin(null);
+              setIsAuthenticated(false);
+            }}
             className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
           >
             {t('बाहेर पडा (Logout)', 'Logout')}
