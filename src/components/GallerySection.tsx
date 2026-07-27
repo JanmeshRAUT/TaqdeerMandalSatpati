@@ -157,7 +157,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ galleryItems }) 
                   className="group relative rounded-2xl overflow-hidden bg-[#FAF8F5] border border-gray-200 shadow-2xs cursor-pointer hover:shadow-2xl transition-shadow"
                 >
                   <div className="aspect-4/3 overflow-hidden relative">
-                    {item.category === 'instagram' ? (
+                    {item.category === 'instagram' || item.imageUrl?.includes('instagram.com') ? (
                       <iframe 
                         src={`${item.imageUrl.split('?')[0].replace(/\/$/, '')}/embed`}
                         className="w-full h-full object-cover border-none pointer-events-none"
@@ -272,7 +272,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ galleryItems }) 
               className="max-w-4xl w-full space-y-4 text-center"
             >
               <div className="max-h-[75vh] overflow-hidden rounded-2xl flex items-center justify-center">
-                {filteredItems[lightboxIndex].category === 'instagram' ? (
+                {filteredItems[lightboxIndex].category === 'instagram' || filteredItems[lightboxIndex].imageUrl?.includes('instagram.com') ? (
                   <iframe
                     src={`${filteredItems[lightboxIndex].imageUrl.split('?')[0].replace(/\/$/, '')}/embed?autoplay=1`}
                     className="max-h-[75vh] w-full max-w-[400px] h-[75vh] border-none rounded-2xl bg-white"
