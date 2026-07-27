@@ -794,6 +794,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {!localSettings.isHeroSlideshowEnabled && (
+                <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className="space-y-4">
                   <div>
@@ -830,6 +831,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   )
                 )}
               </div>
+                </>
               )}
             </form>
           )}

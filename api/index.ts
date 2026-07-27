@@ -184,9 +184,13 @@ app.put('/api/settings', requireAdmin, async (req, res) => {
     if (!settings) {
       settings = await Settings.create(req.body);
     } else {
+      const updateData = { ...req.body };
+      delete updateData._id;
+      delete updateData.__v;
+      
       settings = await Settings.findOneAndUpdate(
         { _id: settings._id },
-        { $set: req.body, updatedAt: new Date() },
+        { $set: updateData, updatedAt: new Date() },
         { returnDocument: 'after' }
       );
     }
