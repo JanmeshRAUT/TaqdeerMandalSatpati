@@ -1268,7 +1268,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="col-span-1 sm:col-span-2 md:col-span-3 flex items-start sm:items-center gap-4">
                 <div className="w-24 h-24 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-300 overflow-hidden shrink-0 shadow-sm relative">
                   {newGallery.imageUrl ? (
-                    newGallery.category === 'instagram' ? (
+                    newGallery.category === 'instagram' || newGallery.imageUrl.includes('instagram.com') ? (
                       <ImageIcon className="w-8 h-8 text-[#FF9933]" />
                     ) : (
                       <img src={newGallery.imageUrl} alt="preview" className="w-full h-full object-cover" />
