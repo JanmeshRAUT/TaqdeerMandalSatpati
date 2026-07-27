@@ -243,12 +243,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                 >
                   {slide.url?.match(/\.(mp4|webm|ogg|mov)$/i) || slide.url?.includes('/video/upload/') ? (
                     <video
-                      src={slide.url?.includes('cloudinary.com') && !slide.url.includes('q_auto') ? slide.url.replace('/upload/', '/upload/q_auto,f_auto/') : slide.url}
+                      src={slide.url}
                       className="w-full h-full object-cover p-0"
                       autoPlay
                       muted
                       loop
                       playsInline
+                      preload="auto"
                     />
                   ) : (
                     <img

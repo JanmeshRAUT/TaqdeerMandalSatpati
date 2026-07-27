@@ -159,13 +159,14 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
           {settings?.jerseyComingSoonVideoUrl && (
             <div className="w-full max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
               <video 
-                src={settings.jerseyComingSoonVideoUrl?.includes('cloudinary.com') && !settings.jerseyComingSoonVideoUrl.includes('q_auto') ? settings.jerseyComingSoonVideoUrl.replace('/upload/', '/upload/q_auto,f_auto/') : settings.jerseyComingSoonVideoUrl} 
+                src={settings.jerseyComingSoonVideoUrl} 
                 className="w-full h-auto aspect-video object-cover"
                 autoPlay 
                 muted 
                 loop 
                 controls 
                 playsInline
+                preload="auto"
               />
             </div>
           )}

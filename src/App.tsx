@@ -56,6 +56,7 @@ function AppContent() {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
   const [settings, setSettings] = useState<any>({});
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -85,8 +86,10 @@ function AppContent() {
       setSponsors(Array.isArray(spoRes) ? spoRes : []);
       setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
       setSettings(setRes || {});
+      setIsBackendConnected(true);
     } catch (error) {
       console.error('Error fetching data from API:', error);
+      setIsBackendConnected(false);
     }
   }, [adminPin]);
 
@@ -198,6 +201,7 @@ function AppContent() {
             resetAllData={resetAllData}
             adminPin={adminPin}
             setAdminPin={setAdminPin}
+            isBackendConnected={isBackendConnected}
           />
         )}
       </main>

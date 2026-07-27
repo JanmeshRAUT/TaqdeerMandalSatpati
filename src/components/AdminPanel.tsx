@@ -39,6 +39,7 @@ interface AdminPanelProps {
   resetAllData: () => void;
   adminPin: string | null;
   setAdminPin: (pin: string | null) => void;
+  isBackendConnected?: boolean;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -54,7 +55,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   setSettings,
   refetchData,
   resetAllData,
-  adminPin, setAdminPin
+  adminPin, setAdminPin,
+  isBackendConnected
 }) => {
   const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(!!adminPin);
@@ -657,6 +659,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           >
             {t('बाहेर पडा (Logout)', 'Logout')}
           </button>
+
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs font-medium bg-white/50 py-2 rounded-lg border border-gray-100">
+            <span className="relative flex h-2.5 w-2.5">
+              {isBackendConnected ? (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </>
+              ) : (
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+              )}
+            </span>
+            <span className={isBackendConnected ? "text-emerald-700" : "text-red-600"}>
+              {isBackendConnected ? 'Backend Connected' : 'Backend Disconnected'}
+            </span>
+          </div>
         </div>
       </div>
 
