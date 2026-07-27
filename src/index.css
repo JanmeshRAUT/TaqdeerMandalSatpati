@@ -28,8 +28,8 @@
 }
 
 h1.font-marathi, h2.font-marathi, h3.font-marathi, h4.font-marathi, .font-marathi-festive {
-  font-family: 'Yatra One', 'Noto Sans Devanagari', sans-serif;
-  font-weight: normal; /* Yatra One is bold by default, normal is cleaner */
+  font-family: 'Amita', 'Poppins', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 700;
 }
 
 .font-english {
