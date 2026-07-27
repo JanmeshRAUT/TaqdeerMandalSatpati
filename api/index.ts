@@ -116,7 +116,8 @@ const seedDatabase = async () => {
     console.error('Error seeding database:', error);
   }
 };
-seedDatabase();
+// Removed automatic seeding in production to prevent Vercel MongoBulkWriteErrors
+// seedDatabase();
 
 // --- API Routes ---
 
