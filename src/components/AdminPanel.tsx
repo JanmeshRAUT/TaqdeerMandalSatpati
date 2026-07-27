@@ -1383,7 +1383,129 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
-      {/* TAB CONTENT 4: EVENTS */}
+      {/* TAB CONTENT 4: HISTORY MILESTONES */}
+      {activeTab === 'history' && (
+        <div className="space-y-6">
+          <form onSubmit={handleAddMilestone} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-[#FF9933]" />
+              <span>{t('नवीन इतिहास जोडा', 'Add History Milestone')}</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block font-semibold mb-1">वर्ष (Year)</label>
+                <input
+                  type="text"
+                  required
+                  value={newMilestone.year}
+                  onChange={(e) => setNewMilestone({...newMilestone, year: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  placeholder="e.g. १९८१"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">शीर्षक (मराठी)</label>
+                <input
+                  type="text"
+                  required
+                  value={newMilestone.titleMr}
+                  onChange={(e) => setNewMilestone({...newMilestone, titleMr: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  placeholder="e.g. मंडळाची स्थापना"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">शीर्षक (English)</label>
+                <input
+                  type="text"
+                  value={newMilestone.titleEn}
+                  onChange={(e) => setNewMilestone({...newMilestone, titleEn: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-semibold mb-1">माहिती (मराठी)</label>
+                <textarea
+                  value={newMilestone.descriptionMr}
+                  onChange={(e) => setNewMilestone({...newMilestone, descriptionMr: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  rows={2}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-semibold mb-1">माहिती (English)</label>
+                <textarea
+                  value={newMilestone.descriptionEn}
+                  onChange={(e) => setNewMilestone({...newMilestone, descriptionEn: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  rows={2}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-semibold mb-1">फोटो अपलोड (Optional)</label>
+                <div className="flex gap-4 items-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      if (!e.target.files || !e.target.files.length) return;
+                      setIsUploadingMilestone(true);
+                      const formData = new FormData();
+                      formData.append('image', e.target.files[0]);
+                      try {
+                        const res = await fetch('/api/upload', {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${adminPin}` },
+                          body: formData
+                        });
+                        const data = await res.json();
+                        if (data.url) setNewMilestone({...newMilestone, imageUrl: data.url});
+                      } catch (err) {}
+                      setIsUploadingMilestone(false);
+                    }}
+                    disabled={isUploadingMilestone}
+                    className="flex-1 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF9933] file:text-white bg-white border border-gray-300 rounded-xl cursor-pointer"
+                  />
+                  {isUploadingMilestone && <span className="text-[#FF9933] font-bold text-xs">Uploading...</span>}
+                  {newMilestone.imageUrl && <img src={newMilestone.imageUrl} alt="Preview" className="w-12 h-12 rounded object-cover" />}
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" disabled={isUploadingMilestone} className="mt-4 px-6 py-2.5 bg-[#FF9933] text-white font-bold rounded-xl shadow-md text-sm hover:bg-[#E68A2E]">
+              {t('जोडा (Add)', 'Add')}
+            </button>
+          </form>
+
+          <div className="space-y-4">
+            {milestones.map((m) => (
+              <div key={m.id} className="p-4 rounded-xl bg-white border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  {m.imageUrl && <img src={m.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover" />}
+                  <div>
+                    <div className="text-sm font-bold text-gray-900">{m.year} - {m.titleMr}</div>
+                    <div className="text-xs text-gray-500 line-clamp-2">{m.descriptionMr}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDeleteMilestone(m.id)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB CONTENT 5: EVENTS */}
       {activeTab === 'events' && (
         <div className="space-y-4">
           <div className="text-sm font-bold text-gray-700">

@@ -184,6 +184,8 @@ function AppContent() {
             setEvents={setEvents}
             activities={activities}
             setActivities={setActivities}
+            milestones={milestones}
+            setMilestones={setMilestones}
             sponsors={sponsors}
             setSponsors={setSponsors}
             jerseyBookings={jerseyBookings}
