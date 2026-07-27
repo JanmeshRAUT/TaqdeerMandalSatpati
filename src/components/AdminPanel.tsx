@@ -1332,22 +1332,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold mb-1">वर्गवारी (Category)</label>
-                <select
-                  value={newGallery.category}
-                  onChange={(e) => setNewGallery({...newGallery, category: e.target.value as any})}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
-                >
-                  <option value="idol">श्रींची मूर्ती (Ganesh Idol)</option>
-                  <option value="decoration">देखावा (Decoration)</option>
-                  <option value="aarti">महाआरती (Aarti)</option>
-                  <option value="cultural">सांस्कृतिक (Cultural)</option>
-                  <option value="social">सामाजिक (Social)</option>
-                  <option value="visarjan">विसर्जन (Visarjan)</option>
-                  <option value="memories">जुन्या आठवणी (Old Memories)</option>
-                  <option value="instagram">इन्स्टाग्राम (Instagram)</option>
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                <div>
+                  <label className="block font-semibold mb-1">वर्गवारी (Category)</label>
+                  <select
+                    value={newGallery.category}
+                    onChange={(e) => setNewGallery({...newGallery, category: e.target.value as any})}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  >
+                    <option value="idol">श्रींची मूर्ती (Ganesh Idol)</option>
+                    <option value="decoration">देखावा (Decoration)</option>
+                    <option value="aarti">महाआरती (Aarti)</option>
+                    <option value="cultural">सांस्कृतिक (Cultural)</option>
+                    <option value="social">सामाजिक (Social)</option>
+                    <option value="visarjan">विसर्जन (Visarjan)</option>
+                    <option value="memories">जुन्या आठवणी (Old Memories)</option>
+                    <option value="instagram">इन्स्टाग्राम (Instagram)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1">वर्ष (Year)</label>
+                  <input
+                    type="number"
+                    required
+                    value={newGallery.year}
+                    onChange={(e) => setNewGallery({...newGallery, year: parseInt(e.target.value) || new Date().getFullYear()})}
+                    placeholder="उदा. 2024"
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                    min="1980"
+                    max="2100"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-2 col-span-1 md:col-span-2 pt-2">
