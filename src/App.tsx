@@ -119,7 +119,7 @@ function AppContent() {
       <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4 font-marathi">
         <div className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl flex items-center justify-center mb-8 relative border-4 border-white">
           <div className="absolute inset-0 border-4 border-[#FF9933] border-t-transparent rounded-full animate-spin"></div>
-          <img src="/images/logo.png" alt="Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md z-10" />
+          <img src="/images/LogoBGRemoved.png" alt="Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md z-10" />
         </div>
         <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] mb-2 text-center">
           कृपया थोडा वेळ प्रतीक्षा करा...
