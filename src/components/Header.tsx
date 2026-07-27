@@ -36,43 +36,58 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <motion.header 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className="sticky top-0 z-40 glass-panel transition-all"
-    >
+    <>
+      {/* Pendant Logo — fixed over the header, completely outside it so it's never clipped */}
+      <motion.button
+        initial={{ y: -200 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        onClick={() => handleNavClick('home')}
+        id="header-logo-btn"
+        className="fixed top-0 left-4 sm:left-6 lg:left-10 z-[60] focus:outline-none group cursor-pointer"
+        style={{ width: 88 }}
+      >
+        <img
+          src="/LogoBGRemoved.png"
+          alt="Taqdeer Mitra Mandal Logo"
+          className="w-full drop-shadow-2xl group-hover:drop-shadow-[0_20px_30px_rgba(255,106,0,0.5)] group-hover:scale-105 transition-all duration-300"
+          style={{ height: 180, objectFit: 'contain', objectPosition: 'top', display: 'block' }}
+        />
+      </motion.button>
+
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className="sticky top-0 z-40 glass-panel transition-all"
+      >
       {/* Top Thin Heritage Accent Bar */}
       <div className="h-1.5 bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 shadow-sm" />
 
-      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
+
+
+      {/* Main header content — padded left to clear the pendant logo */}
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12" style={{ paddingLeft: 120 }}>
         <div className="flex items-center justify-between h-20">
-          
-          {/* Logo & Mandal Title */}
-          <motion.button 
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+
+          {/* Mandal Title (no logo here — it's absolutely positioned above) */}
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={() => handleNavClick('home')}
-            className="flex items-center gap-3 text-left focus:outline-none group cursor-pointer"
-            id="header-logo-btn"
+            className="flex flex-col text-left focus:outline-none cursor-pointer"
+            id="header-title-btn"
           >
-            {/* Custom Logo */}
-            <div className="w-12 h-12 rounded-full overflow-hidden shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all bg-white border border-[#D4AF37]/40">
-              <img src="/Logo.png" alt="Taqdeer Mitra Mandal Logo" className="w-full h-full object-cover" />
-            </div>
-            
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-gradient-saffron leading-tight font-marathi drop-shadow-sm group-hover:text-[#FF9933] transition-colors">
-                {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
-              </h1>
-              <p className="text-xs text-gray-600 flex items-center gap-2 mt-0.5">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)] animate-pulse" />
-                <span className="font-semibold">{t('स्थापना १९८१ • सातपाटी', 'Est. 1981 • Satpati')}</span>
-                <span className="hidden sm:inline-block text-[#D4AF37] font-semibold italic font-marathi">
-                  | {t('श्रद्धा • सेवा • संस्कृती', 'Faith • Service • Culture')}
-                </span>
-              </p>
-            </div>
+            <h1 className="text-lg sm:text-xl font-bold text-gradient-saffron leading-tight font-marathi drop-shadow-sm" style={{ letterSpacing: 0 }}>
+              {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
+            </h1>
+            <p className="text-xs text-gray-600 flex items-center gap-2 mt-0.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)] animate-pulse" />
+              <span className="font-semibold">{t('स्थापना १९८१ • सातपाटी', 'Est. 1981 • Satpati')}</span>
+              <span className="hidden sm:inline-block text-[#D4AF37] font-semibold italic font-marathi" style={{ letterSpacing: 0 }}>
+                | {t('श्रद्धा • सेवा • संस्कृती', 'Faith • Service • Culture')}
+              </span>
+            </p>
           </motion.button>
 
           {/* Desktop Navigation */}
@@ -205,5 +220,6 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
         )}
       </AnimatePresence>
     </motion.header>
+    </>
   );
 };

@@ -11,7 +11,7 @@
   }
 
   body {
-    font-family: 'Poppins', 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Tiro Devanagari Marathi', 'Noto Sans Devanagari', 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #111111;
     background-color: #FAFAFA;
     background-image: radial-gradient(circle at top right, rgba(255, 106, 0, 0.03), transparent 40%),
@@ -23,19 +23,21 @@
   }
 }
 
+/* Marathi body text – elegant Marathi-specific serif */
 .font-marathi {
-  font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif;
-  letter-spacing: normal !important;
+  font-family: 'Tiro Devanagari Marathi', 'Noto Sans Devanagari', 'Poppins', sans-serif;
+  letter-spacing: 0 !important;
 }
 
+/* Marathi headings – bold calligraphic display font */
 h1.font-marathi, h2.font-marathi, h3.font-marathi, h4.font-marathi, .font-marathi-festive {
-  font-family: 'Amita', 'Poppins', 'Noto Sans Devanagari', sans-serif;
-  font-weight: 700;
-  letter-spacing: normal !important;
+  font-family: 'Rozha One', 'Tiro Devanagari Marathi', 'Noto Sans Devanagari', sans-serif;
+  font-weight: 400; /* Rozha One is already very bold at 400 */
+  letter-spacing: 0 !important;
 }
 
 .font-english {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', 'Inter', sans-serif;
 }
 
 @layer utilities {
