@@ -191,7 +191,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
           
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-gray-500">
-              {t('स्नेहाने निर्मित', 'Crafted with')} <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" /> {t('सातपाटी सांस्कृतिक वारसा', 'Satpati Heritage')}
+              {t('स्नेहाने निर्मित', 'Crafted with')} <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" /> {t('जन्मेश राऊत', 'Janmesh Raut')}
             </span>
 
             <button
