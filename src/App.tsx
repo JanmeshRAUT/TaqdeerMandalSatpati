@@ -73,15 +73,15 @@ function AppContent() {
           fetch('/api/sponsors', { headers }).then(r => r.json()),
           fetch('/api/jersey-bookings', { headers }).then(r => r.json())
         ]);
-        setAnnouncements(annRes);
-        setCommittee(comRes);
-        setMembers(memRes);
-        setGallery(galRes);
-        setEvents(evtRes);
-        setMilestones(milRes);
-        setActivities(actRes);
-        setSponsors(spoRes);
-        setJerseyBookings(jerRes);
+        setAnnouncements(Array.isArray(annRes) ? annRes : []);
+        setCommittee(Array.isArray(comRes) ? comRes : []);
+        setMembers(Array.isArray(memRes) ? memRes : []);
+        setGallery(Array.isArray(galRes) ? galRes : []);
+        setEvents(Array.isArray(evtRes) ? evtRes : []);
+        setMilestones(Array.isArray(milRes) ? milRes : []);
+        setActivities(Array.isArray(actRes) ? actRes : []);
+        setSponsors(Array.isArray(spoRes) ? spoRes : []);
+        setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
       } catch (error) {
         console.error('Error fetching data from API:', error);
       }

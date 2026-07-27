@@ -17,8 +17,8 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB asynchronously in the background
+connectDB().catch(err => console.error('Initial DB connection error:', err));
 
 // CORS options setup to restrict access in production
 const corsOptions = {
@@ -56,6 +56,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 
+// Middleware to guarantee that MongoDB connection is ready before processing API queries
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err: any) {
+    console.error('Database connection failed in middleware:', err);
+    res.status(500).json({ message: 'Database connection failed: ' + err.message });
+  }
+});
+
 // Auth Utilities
 const getAdminPin = () => process.env.ADMIN_PIN || 'Taqdeer1981';
 
@@ -87,6 +98,7 @@ const upload = multer({
 // Seed Database if empty
 const seedDatabase = async () => {
   try {
+    await connectDB();
     const annCount = await Announcement.countDocuments();
     if (annCount === 0) {
       await Announcement.insertMany(INITIAL_ANNOUNCEMENTS);
