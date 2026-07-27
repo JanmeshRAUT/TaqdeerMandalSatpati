@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { NavTab, JerseyBooking } from './types';
 import { Header } from './components/Header';
@@ -56,41 +56,42 @@ function AppContent() {
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
   const [settings, setSettings] = useState<any>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const headers: HeadersInit = {};
-        if (adminPin) {
-          headers['Authorization'] = `Bearer ${adminPin}`;
-        }
-        const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes] = await Promise.all([
-          fetch('/api/announcements', { headers }).then(r => r.json()),
-          fetch('/api/committee', { headers }).then(r => r.json()),
-          fetch('/api/members', { headers }).then(r => r.json()),
-          fetch('/api/gallery', { headers }).then(r => r.json()),
-          fetch('/api/events', { headers }).then(r => r.json()),
-          fetch('/api/milestones', { headers }).then(r => r.json()),
-          fetch('/api/activities', { headers }).then(r => r.json()),
-          fetch('/api/sponsors', { headers }).then(r => r.json()),
-          fetch('/api/jersey-bookings', { headers }).then(r => r.json()),
-          fetch('/api/settings', { headers }).then(r => r.json())
-        ]);
-        setAnnouncements(Array.isArray(annRes) ? annRes : []);
-        setCommittee(Array.isArray(comRes) ? comRes : []);
-        setMembers(Array.isArray(memRes) ? memRes : []);
-        setGallery(Array.isArray(galRes) ? galRes : []);
-        setEvents(Array.isArray(evtRes) ? evtRes : []);
-        setMilestones(Array.isArray(milRes) ? milRes : []);
-        setActivities(Array.isArray(actRes) ? actRes : []);
-        setSponsors(Array.isArray(spoRes) ? spoRes : []);
-        setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
-        setSettings(setRes || {});
-      } catch (error) {
-        console.error('Error fetching data from API:', error);
+  const fetchData = useCallback(async () => {
+    try {
+      const headers: HeadersInit = {};
+      if (adminPin) {
+        headers['Authorization'] = `Bearer ${adminPin}`;
       }
-    };
-    fetchData();
+      const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes] = await Promise.all([
+        fetch('/api/announcements', { headers }).then(r => r.json()),
+        fetch('/api/committee', { headers }).then(r => r.json()),
+        fetch('/api/members', { headers }).then(r => r.json()),
+        fetch('/api/gallery', { headers }).then(r => r.json()),
+        fetch('/api/events', { headers }).then(r => r.json()),
+        fetch('/api/milestones', { headers }).then(r => r.json()),
+        fetch('/api/activities', { headers }).then(r => r.json()),
+        fetch('/api/sponsors', { headers }).then(r => r.json()),
+        fetch('/api/jersey-bookings', { headers }).then(r => r.json()),
+        fetch('/api/settings', { headers }).then(r => r.json())
+      ]);
+      setAnnouncements(Array.isArray(annRes) ? annRes : []);
+      setCommittee(Array.isArray(comRes) ? comRes : []);
+      setMembers(Array.isArray(memRes) ? memRes : []);
+      setGallery(Array.isArray(galRes) ? galRes : []);
+      setEvents(Array.isArray(evtRes) ? evtRes : []);
+      setMilestones(Array.isArray(milRes) ? milRes : []);
+      setActivities(Array.isArray(actRes) ? actRes : []);
+      setSponsors(Array.isArray(spoRes) ? spoRes : []);
+      setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
+      setSettings(setRes || {});
+    } catch (error) {
+      console.error('Error fetching data from API:', error);
+    }
   }, [adminPin]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const resetAllData = () => {
     // Note: To fully reset in DB, you would need an endpoint to drop collections
@@ -190,6 +191,9 @@ function AppContent() {
             setSponsors={setSponsors}
             jerseyBookings={jerseyBookings}
             setJerseyBookings={setJerseyBookings}
+            settings={settings}
+            setSettings={setSettings}
+            refetchData={fetchData}
             resetAllData={resetAllData}
             adminPin={adminPin}
             setAdminPin={setAdminPin}

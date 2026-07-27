@@ -33,6 +33,8 @@ interface AdminPanelProps {
   jerseyBookings: JerseyBooking[];
   setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
   settings: any;
+  setSettings: (settings: any) => void;
+  refetchData: () => void;
   resetAllData: () => void;
   adminPin: string | null;
   setAdminPin: (pin: string | null) => void;
@@ -48,6 +50,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
   settings,
+  setSettings,
+  refetchData,
   resetAllData,
   adminPin, setAdminPin
 }) => {
@@ -128,6 +132,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         body: JSON.stringify(localSettings)
       });
       if (res.ok) {
+        const saved = await res.json();
+        setSettings(saved);
         showToast('सेटिंग्ज जतन केल्या (Settings Saved)');
       }
     } catch (err) {
