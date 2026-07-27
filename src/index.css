@@ -11,7 +11,7 @@
   }
 
   body {
-    font-family: 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Poppins', 'Noto Sans Devanagari', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #111111;
     background-color: #FAFAFA;
     background-image: radial-gradient(circle at top right, rgba(255, 106, 0, 0.03), transparent 40%),
@@ -24,7 +24,12 @@
 }
 
 .font-marathi {
-  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif;
+}
+
+h1.font-marathi, h2.font-marathi, h3.font-marathi, h4.font-marathi, .font-marathi-festive {
+  font-family: 'Yatra One', 'Noto Sans Devanagari', sans-serif;
+  font-weight: normal; /* Yatra One is bold by default, normal is cleaner */
 }
 
 .font-english {
