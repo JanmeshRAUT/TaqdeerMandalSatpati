@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import {
   CommitteeMember,
@@ -32,6 +32,7 @@ interface AdminPanelProps {
   setSponsors: React.Dispatch<React.SetStateAction<Sponsor[]>>;
   jerseyBookings: JerseyBooking[];
   setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
+  settings: any;
   resetAllData: () => void;
   adminPin: string | null;
   setAdminPin: (pin: string | null) => void;
@@ -46,6 +47,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   activities, setActivities,
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
+  settings,
   resetAllData,
   adminPin, setAdminPin
 }) => {
@@ -54,7 +56,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'backup'>('announcements');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'backup'>('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -97,7 +99,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newMember, setNewMember] = useState({ nameMr: '', nameEn: '', joinedYear: 2026, bloodGroup: '', phone: '', locationMr: '', locationEn: '', photoUrl: '', isLifetimeMember: false });
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
-  const [newGallery, setNewGallery] = useState({ titleMr: '', titleEn: '', category: 'idol' as const, year: 2026, imageUrl: '' });
+  const [newGallery, setNewGallery] = useState({ titleMr: '', titleEn: '', category: 'idol' as const, year: 2026, imageUrl: '', isHeroPinned: false });
   const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [galleryUploadType, setGalleryUploadType] = useState<'upload' | 'link'>('upload');
@@ -110,6 +112,52 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [bookingSearch, setBookingSearch] = useState('');
   const [bookingSizeFilter, setBookingSizeFilter] = useState<string>('all');
   const [bookingSort, setBookingSort] = useState<'asc' | 'desc'>('asc');
+
+  // Global Settings State
+  const [localSettings, setLocalSettings] = useState<any>(settings || {});
+  useEffect(() => { setLocalSettings(settings || {}); }, [settings]);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const handleSaveSettings = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminPin}` },
+        body: JSON.stringify(localSettings)
+      });
+      if (res.ok) {
+        showToast('सेटिंग्ज जतन केल्या (Settings Saved)');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('त्रुटी (Error saving)');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleGenericFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      showToast('अपलोड करत आहे... (Uploading...)');
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${adminPin}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) callback(data.url);
+      showToast('फोटो अपलोड झाला! (Uploaded)');
+    } catch (err) {
+      console.error(err);
+      showToast('अपलोड त्रुटी (Upload Error)');
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -425,7 +473,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         const updated = await res.json();
         setGallery(gallery.map(g => g.id === editingGalleryId ? updated : g));
         setEditingGalleryId(null);
-        setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '' });
+        setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '', isHeroPinned: false });
         setGalleryUploadType('upload');
         showToast('गॅलरी माहिती अद्ययावत झाली (Gallery Updated)');
       } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -436,7 +484,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         titleEn: newGallery.titleEn || newGallery.titleMr,
         category: newGallery.category,
         year: newGallery.year,
-        imageUrl: newGallery.imageUrl
+        imageUrl: newGallery.imageUrl,
+        isHeroPinned: newGallery.isHeroPinned
       };
       try {
         const res = await fetch('/api/gallery', {
@@ -449,7 +498,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         });
         const saved = await res.json();
         setGallery([saved, ...gallery]);
-        setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '' });
+        setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '', isHeroPinned: false });
         setGalleryUploadType('upload');
         showToast('नवीन फोटो जोडला (Photo Added)');
       } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -463,7 +512,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       titleEn: g.titleEn,
       category: g.category as any,
       year: g.year || 2026,
-      imageUrl: g.imageUrl
+      imageUrl: g.imageUrl,
+      isHeroPinned: g.isHeroPinned || false
     });
     setGalleryUploadType(g.imageUrl.includes('instagram.com') ? 'link' : 'upload');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -563,10 +613,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   }
 
   return (
-    <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-marathi">
+    <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8 font-marathi">
       
       {/* Admin Top Header Bar */}
-      <div className="bg-gray-900 text-white p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+      <div className="bg-gray-900 text-white p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg mb-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#FF9933] text-white flex items-center justify-center font-bold">
             <Shield className="w-5 h-5" />
@@ -603,78 +653,230 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </div>
 
-      {/* Admin Tabs Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('announcements')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'announcements' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <Megaphone className="w-4 h-4" />
-          <span>{t('सूचना फलक (Banner)', 'Announcements')}</span>
-        </button>
+      <div className="flex flex-col lg:flex-row gap-8">
+        
+        {/* Admin Sidebar Navigation */}
+        <div className="w-full lg:w-64 shrink-0 flex flex-col gap-2">
+          
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-2">{t('मुख्य व्यवस्थापन', 'Main Config')}</h3>
+          
+          <button
+            onClick={() => setActiveTab('hero')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'hero' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-[#FF9933]/50'
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span>{t('हिरो सेक्शन (Hero Area)', 'Hero Settings')}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('committee')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'committee' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>{t('कार्यकारिणी (Committee)', 'Committee')}</span>
-        </button>
+          <button
+            onClick={() => setActiveTab('jersey-config')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'jersey-config' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-[#FF9933]/50'
+            }`}
+          >
+            <Shirt className="w-4 h-4" />
+            <span>{t('जर्सी नियंत्रण (Jersey Config)', 'Jersey Config')}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('members')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'members' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <UserCheck className="w-4 h-4" />
-          <span>{t('सभासद (Members)', 'Members')}</span>
-        </button>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4 px-2">{t('डेटा व्यवस्थापन', 'Data Management')}</h3>
 
-        <button
-          onClick={() => setActiveTab('gallery')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'gallery' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <ImageIcon className="w-4 h-4" />
-          <span>{t('गॅलरी (Gallery)', 'Gallery')}</span>
-        </button>
+          <button
+            onClick={() => setActiveTab('announcements')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'announcements' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Megaphone className="w-4 h-4" />
+            <span>{t('सूचना फलक (Banner)', 'Announcements')}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('events')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'events' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          <span>{t('कार्यक्रम (Events)', 'Events')}</span>
-        </button>
+          <button
+            onClick={() => setActiveTab('committee')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'committee' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>{t('कार्यकारिणी (Committee)', 'Committee')}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('jersey-bookings')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'jersey-bookings' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <Shirt className="w-4 h-4" />
-          <span>{t('जर्सी बुकिंग (Jersey Bookings)', 'Jersey Bookings')}</span>
-        </button>
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'members' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>{t('सभासद (Members)', 'Members')}</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('backup')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 transition-all ${
-            activeTab === 'backup' ? 'bg-[#FF9933] text-white shadow-xs' : 'bg-[#FAF8F5] text-gray-700 hover:bg-gray-100'
-          }`}
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>{t('रिसेट / रीस्टोर', 'Reset Data')}</span>
-        </button>
-      </div>
+          <button
+            onClick={() => setActiveTab('gallery')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'gallery' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <ImageIcon className="w-4 h-4" />
+            <span>{t('गॅलरी (Gallery)', 'Gallery')}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'events' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>{t('कार्यक्रम (Events)', 'Events')}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('jersey-bookings')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'jersey-bookings' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Shirt className="w-4 h-4" />
+            <span>{t('जर्सी बुकिंग लिस्ट', 'Bookings List')}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('backup')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'backup' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>{t('रिसेट / रीस्टोर', 'Reset Data')}</span>
+          </button>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">
+
+          {/* TAB CONTENT: DASHBOARD (Default) */}
+          {activeTab === 'dashboard' && (
+            <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center min-h-[400px]">
+              <Shield className="w-16 h-16 text-[#FF9933] mb-4 opacity-80" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {t('स्वागत आहे, ॲडमिन!', 'Welcome, Admin!')}
+              </h2>
+              <p className="text-gray-500 max-w-md">
+                {t('डावीकडील मेनूमधून तुम्ही मंडळाची संपूर्ण वेबसाइट नियंत्रित करू शकता. फोटो अपलोड, जर्सी बुकिंग आणि सूचना व्यवस्थापित करा.', 'Use the sidebar menu to completely control the Mandal website. Upload photos, manage Jersey bookings, and announcements.')}
+              </p>
+            </div>
+          )}
+
+          {/* TAB CONTENT: HERO SETTINGS */}
+          {activeTab === 'hero' && (
+            <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{t('हिरो सेक्शन नियंत्रण (Hero Settings)', 'Hero Settings')}</h3>
+                <button type="submit" disabled={isSavingSettings} className="px-6 py-2 bg-[#FF9933] text-white font-bold rounded-xl shadow-md hover:bg-[#E68A2E]">
+                  {isSavingSettings ? 'Saving...' : t('जतन करा (Save)', 'Save Settings')}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between bg-gray-50 p-6 rounded-2xl border">
+                <div>
+                  <h4 className="font-bold text-lg">{t('गॅलरी स्लाइडशो (Gallery Slideshow)', 'Gallery Slideshow')}</h4>
+                  <p className="text-gray-500 text-sm">{t('गॅलरीमधील पिन केलेले फोटो स्लाइडशो म्हणून दाखवायचे का ते ठरवा.', 'Toggle whether to show pinned gallery images as a slideshow.')}</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setLocalSettings({...localSettings, isHeroSlideshowEnabled: !localSettings.isHeroSlideshowEnabled})}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${localSettings.isHeroSlideshowEnabled ? 'bg-green-500' : 'bg-red-500'}`}
+                >
+                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${localSettings.isHeroSlideshowEnabled ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {!localSettings.isHeroSlideshowEnabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Image Title (मराठी)</label>
+                    <input type="text" value={localSettings.heroTitleMr || ''} onChange={e => setLocalSettings({...localSettings, heroTitleMr: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="e.g. मुख्य आकर्षण" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Image Title (English)</label>
+                    <input type="text" value={localSettings.heroTitleEn || ''} onChange={e => setLocalSettings({...localSettings, heroTitleEn: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="e.g. Center of Attraction" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Image Caption (मराठी)</label>
+                    <input type="text" value={localSettings.heroSubtitleMr || ''} onChange={e => setLocalSettings({...localSettings, heroSubtitleMr: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="e.g. २०२६ गणेशोत्सव" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-gray-700 mb-1">Image Caption (English)</label>
+                    <input type="text" value={localSettings.heroSubtitleEn || ''} onChange={e => setLocalSettings({...localSettings, heroSubtitleEn: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="e.g. 2026 Festival" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100">
+                <label className="block font-bold text-gray-700 mb-2">Background Image/Video Upload</label>
+                <div className="flex items-center gap-4">
+                  <input type="file" accept="image/*,video/*" onChange={e => handleGenericFileUpload(e, url => setLocalSettings({...localSettings, heroVideoUrl: url, heroImageUrl: url}))} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+                </div>
+                {localSettings.heroImageUrl && (
+                  localSettings.heroImageUrl.match(/\.(mp4|webm|ogg|mov)$/i) || localSettings.heroImageUrl.includes('/video/upload/') ? (
+                    <video src={localSettings.heroImageUrl} className="mt-4 w-64 rounded-xl shadow-md border" autoPlay muted loop controls />
+                  ) : (
+                    <img src={localSettings.heroImageUrl} alt="Hero Preview" className="mt-4 w-48 rounded-xl shadow-md border" />
+                  )
+                )}
+              </div>
+              )}
+            </form>
+          )}
+
+          {/* TAB CONTENT: JERSEY CONFIG */}
+          {activeTab === 'jersey-config' && (
+            <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <h3 className="text-xl font-bold text-gray-900">{t('जर्सी बुकिंग नियंत्रण (Jersey Config)', 'Jersey Config')}</h3>
+                <button onClick={() => handleSaveSettings()} disabled={isSavingSettings} className="px-6 py-2 bg-[#FF9933] text-white font-bold rounded-xl shadow-md hover:bg-[#E68A2E]">
+                  {isSavingSettings ? 'Saving...' : t('जतन करा (Save)', 'Save Settings')}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between bg-gray-50 p-6 rounded-2xl border">
+                <div>
+                  <h4 className="font-bold text-lg">{t('बुकिंग स्थिती', 'Booking Status')}</h4>
+                  <p className="text-gray-500 text-sm">{t('जर्सी बुकिंग चालू आहे की बंद हे येथून ठरवा.', 'Toggle whether the Jersey booking form is open.')}</p>
+                </div>
+                <button 
+                  onClick={() => setLocalSettings({...localSettings, isJerseyRegistrationOpen: !localSettings.isJerseyRegistrationOpen})}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${localSettings.isJerseyRegistrationOpen ? 'bg-green-500' : 'bg-red-500'}`}
+                >
+                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${localSettings.isJerseyRegistrationOpen ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Button Text (मराठी)</label>
+                  <input type="text" value={localSettings.jerseyButtonTextMr || ''} onChange={e => setLocalSettings({...localSettings, jerseyButtonTextMr: e.target.value})} className="w-full p-3 border rounded-xl" />
+                </div>
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Button Text (English)</label>
+                  <input type="text" value={localSettings.jerseyButtonTextEn || ''} onChange={e => setLocalSettings({...localSettings, jerseyButtonTextEn: e.target.value})} className="w-full p-3 border rounded-xl" />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100">
+                <label className="block font-bold text-gray-700 mb-2">Coming Soon Video (If Booking is Closed)</label>
+                <input type="file" accept="video/*" onChange={e => handleGenericFileUpload(e, url => setLocalSettings({...localSettings, jerseyComingSoonVideoUrl: url}))} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+                {localSettings.jerseyComingSoonVideoUrl && (
+                  <video src={localSettings.jerseyComingSoonVideoUrl} className="mt-4 w-64 rounded-xl shadow-md border" controls />
+                )}
+              </div>
+            </div>
+          )}
 
       {/* TAB CONTENT 1: ANNOUNCEMENTS */}
       {activeTab === 'announcements' && (
@@ -1120,6 +1322,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <option value="instagram">इन्स्टाग्राम (Instagram)</option>
                 </select>
               </div>
+
+              <div className="flex items-center gap-2 col-span-1 md:col-span-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="heroPinned"
+                  checked={newGallery.isHeroPinned}
+                  onChange={(e) => setNewGallery({...newGallery, isHeroPinned: e.target.checked})}
+                  className="w-4 h-4 text-[#FF9933] border-gray-300 rounded focus:ring-[#FF9933]"
+                />
+                <label htmlFor="heroPinned" className="font-semibold text-gray-700">
+                  {t('हिरो सेक्शनला जोडा (Pin to Hero Slideshow)', 'Pin to Hero Slideshow')}
+                </label>
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -1131,7 +1346,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="button" 
                   onClick={() => {
                     setEditingGalleryId(null);
-                    setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '' });
+                    setNewGallery({ titleMr: '', titleEn: '', category: 'idol', year: 2026, imageUrl: '', isHeroPinned: false });
                   }}
                   className="px-5 py-2.5 rounded-xl bg-gray-200 text-gray-700 font-bold text-xs shadow-xs"
                 >
@@ -1425,6 +1640,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
+    </div>
+    </div>
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 z-50 border border-gray-700">

@@ -35,7 +35,8 @@ const GalleryItemSchema = new Schema({
   imageUrl: { type: String, required: true },
   year: { type: Number, required: true },
   descriptionMr: String,
-  descriptionEn: String
+  descriptionEn: String,
+  isHeroPinned: { type: Boolean, default: false }
 });
 
 const EventScheduleItemSchema = new Schema({
@@ -122,3 +123,20 @@ export const SocialActivity = mongoose.model('SocialActivity', SocialActivitySch
 export const Sponsor = mongoose.model('Sponsor', SponsorSchema);
 export const Announcement = mongoose.model('Announcement', AnnouncementSchema);
 export const JerseyBooking = mongoose.model('JerseyBooking', JerseyBookingSchema);
+
+const SettingsSchema = new Schema({
+  heroTitleMr: { type: String, default: 'श्री सार्वजनिक गणेशोत्सव' },
+  heroTitleEn: { type: String, default: 'Shree Sarvajanik Ganeshotsav' },
+  heroSubtitleMr: { type: String, default: 'तकदीर मित्र मंडळ, सातपाटी' },
+  heroSubtitleEn: { type: String, default: 'Taqdeer Mitra Mandal, Satpati' },
+  isHeroSlideshowEnabled: { type: Boolean, default: false },
+  heroVideoUrl: { type: String, default: '' },
+  heroImageUrl: { type: String, default: '' },
+  isJerseyRegistrationOpen: { type: Boolean, default: true },
+  jerseyButtonTextMr: { type: String, default: 'जर्सी बुक करा' },
+  jerseyButtonTextEn: { type: String, default: 'Book Jersey' },
+  jerseyComingSoonVideoUrl: { type: String, default: '' },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+export const Settings = mongoose.model('Settings', SettingsSchema);

@@ -44,14 +44,13 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         onClick={() => handleNavClick('home')}
         id="header-logo-btn"
-        className="fixed top-0 left-4 sm:left-6 lg:left-10 z-[60] focus:outline-none group cursor-pointer"
-        style={{ width: 88 }}
+        className="fixed top-0 left-2 sm:left-4 lg:left-10 z-[60] focus:outline-none group cursor-pointer w-[60px] sm:w-[76px] lg:w-[88px]"
       >
         <img
           src="/LogoBGRemoved.png"
           alt="Taqdeer Mitra Mandal Logo"
-          className="w-full drop-shadow-2xl group-hover:drop-shadow-[0_20px_30px_rgba(255,106,0,0.5)] group-hover:scale-105 transition-all duration-300"
-          style={{ height: 180, objectFit: 'contain', objectPosition: 'top', display: 'block' }}
+          className="w-full drop-shadow-2xl group-hover:drop-shadow-[0_20px_30px_rgba(255,106,0,0.5)] group-hover:scale-105 transition-all duration-300 h-[120px] sm:h-[150px] lg:h-[180px]"
+          style={{ objectFit: 'contain', objectPosition: 'top', display: 'block' }}
         />
       </motion.button>
 
@@ -67,8 +66,8 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
 
 
       {/* Main header content — padded left to clear the pendant logo */}
-      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12" style={{ paddingLeft: 120 }}>
-        <div className="flex items-center justify-between h-20">
+      <div className="w-full max-w-[1920px] mx-auto pr-4 sm:pr-6 lg:pr-12 pl-[70px] sm:pl-[90px] lg:pl-[130px]">
+        <div className="flex items-center justify-between h-16 sm:h-20">
 
           {/* Mandal Title (no logo here — it's absolutely positioned above) */}
           <motion.button

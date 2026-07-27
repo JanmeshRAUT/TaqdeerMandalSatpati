@@ -36,6 +36,7 @@ export interface GalleryItem {
   year: number;
   descriptionMr?: string;
   descriptionEn?: string;
+  isHeroPinned?: boolean;
 }
 
 export interface EventScheduleItem {

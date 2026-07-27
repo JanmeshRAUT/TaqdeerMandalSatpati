@@ -3,10 +3,11 @@ import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 import connectDB from './config/db.js';
 import {
   Announcement, CommitteeMember, DirectoryMember, GalleryItem,
-  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor, JerseyBooking
+  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor, JerseyBooking, Settings
 } from './models/index.js';
 import {
   INITIAL_ANNOUNCEMENTS, INITIAL_COMMITTEE, INITIAL_MEMBERS,
@@ -131,17 +132,68 @@ app.post('/api/auth/verify', (req, res) => {
   res.status(401).json({ success: false, message: 'Invalid PIN' });
 });
 
+// Configure Cloudinary
+if (process.env.CLOUDINARY_URL) {
+  // It will automatically pick up CLOUDINARY_URL
+  cloudinary.config(true);
+} else {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
 // Image Upload Route - Requires Admin Auth
 app.post('/api/upload', requireAdmin, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
   
-  // Convert to Base64 and return as a Data URI to be saved in MongoDB
-  const base64Data = req.file.buffer.toString('base64');
-  const fileUrl = `data:${req.file.mimetype};base64,${base64Data}`;
-  
-  res.json({ url: fileUrl });
+  // Upload buffer to Cloudinary using upload_stream
+  const uploadStream = cloudinary.uploader.upload_stream(
+    { folder: 'taqdeer-mandal', resource_type: 'auto' },
+    (error, result) => {
+      if (error) {
+        console.error('Cloudinary Upload Error:', error);
+        return res.status(500).json({ message: 'Error uploading file to Cloudinary' });
+      }
+      res.json({ url: result?.secure_url });
+    }
+  );
+
+  uploadStream.end(req.file.buffer);
+});
+
+// Global Settings Route
+app.get('/api/settings', async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+    res.json(settings);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.put('/api/settings', requireAdmin, async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create(req.body);
+    } else {
+      settings = await Settings.findOneAndUpdate(
+        { _id: settings._id },
+        { $set: req.body, updatedAt: new Date() },
+        { returnDocument: 'after' }
+      );
+    }
+    res.json(settings);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 const createRouter = (Model: any) => {
@@ -254,7 +306,7 @@ const createRouter = (Model: any) => {
   router.put('/:id', requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await Model.findOneAndUpdate({ id: id }, req.body, { new: true });
+      const result = await Model.findOneAndUpdate({ id: id }, req.body, { returnDocument: 'after' });
       if (!result) return res.status(404).json({ message: 'Not found' });
       res.json(result);
     } catch (error: any) {

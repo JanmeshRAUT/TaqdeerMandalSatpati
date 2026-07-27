@@ -10,29 +10,57 @@ import {
 
 interface HomeSectionProps {
   setActiveTab: (tab: NavTab) => void;
-  announcements: Announcement[];
-  jerseyBookings: JerseyBooking[];
+  announcements?: any[];
+  jerseyBookings?: any[];
+  settings?: any;
+  gallery?: any[];
 }
 
-export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announcements, jerseyBookings }) => {
+export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announcements = [], jerseyBookings = [], settings, gallery = [] }) => {
   const { t } = useLanguage();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 100]);
   const y2 = useTransform(scrollY, [0, 500], [0, -100]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
-  const heroImages = [
-    '/images/Tshirt1.png',
-    '/images/Tshirt2.png',
-  ];
+  // Build Dynamic Slides from Pinned Gallery Items
+  const pinnedGalleryItems = gallery.filter((g: any) => g.isHeroPinned);
+  const fallbackSlides = [
+        {
+          url: settings?.heroImageUrl || '/images/Tshirt1.png',
+          titleMr: settings?.heroTitleMr || 'मंडळाची अधिकृत जर्सी',
+          titleEn: settings?.heroTitleEn || 'Official Mandal Jersey',
+          descMr: settings?.heroSubtitleMr || 'आता बुकिंगसाठी उपलब्ध!',
+          descEn: settings?.heroSubtitleEn || 'Now available for booking!'
+        },
+        ...(!settings?.heroImageUrl ? [{
+          url: '/images/Tshirt2.png',
+          titleMr: 'मंडळाची अधिकृत जर्सी',
+          titleEn: 'Official Mandal Jersey',
+          descMr: 'आता बुकिंगसाठी उपलब्ध!',
+          descEn: 'Now available for booking!'
+        }] : [])
+      ];
+
+  const slides = (settings?.isHeroSlideshowEnabled && pinnedGalleryItems.length > 0)
+    ? pinnedGalleryItems.map((g: any) => ({
+        url: g.imageUrl,
+        titleMr: g.captionMr,
+        titleEn: g.captionEn,
+        descMr: '',
+        descEn: ''
+      }))
+    : fallbackSlides;
+
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   useEffect(() => {
+    if (slides.length <= 1) return;
     const interval = setInterval(() => {
-      setCurrentHeroIndex((prev) => (prev + 1) % heroImages.length);
+      setCurrentHeroIndex((prev) => (prev + 1) % slides.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [slides.length]);
 
   const activeAnnouncements = announcements.filter(a => a.isActive);
 
@@ -156,7 +184,11 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                 <Shirt className="w-4 h-4 text-[#FF9933]" />
-                <span>{t('जर्सी बुक करा', 'Book Jersey')}</span>
+                <span>
+                  {settings?.isJerseyRegistrationOpen === false 
+                    ? t('Coming Soon', 'Coming Soon') 
+                    : (settings?.jerseyButtonTextMr ? t(settings.jerseyButtonTextMr, settings.jerseyButtonTextEn || settings.jerseyButtonTextMr) : t('जर्सी बुक करा', 'Book Jersey'))}
+                </span>
               </motion.button>
 
               <motion.button
@@ -204,46 +236,61 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             <div className="absolute inset-0 bg-[#FF6A00]/20 blur-[100px] rounded-full animate-float-delayed pointer-events-none" />
             
             <div className="relative z-10 w-full h-[380px] sm:h-[460px] bg-gradient-to-br from-[#FAF8F5] to-gray-100 rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-white group transform transition-transform hover:scale-[1.02] duration-500 flex items-center justify-center">
-              {heroImages.map((src, index) => (
-                <img
-                  key={src}
-                  src={src}
-                  alt="Taqdeer Mandal Official Jersey"
-                  className={`absolute w-full h-full object-cover sm:object-contain p-2 sm:p-4 lg:p-6 transition-all duration-[2000ms] ease-in-out ${
-                    index === currentHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                  }`}
-                  referrerPolicy="no-referrer"
-                />
+              {slides.map((slide, index) => (
+                <div 
+                  key={index} 
+                  className={`absolute inset-0 transition-all duration-[2000ms] ease-in-out ${index === currentHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                >
+                  {slide.url?.match(/\.(mp4|webm|ogg|mov)$/i) || slide.url?.includes('/video/upload/') ? (
+                    <video
+                      src={slide.url}
+                      className="w-full h-full object-cover p-0"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={slide.url}
+                      alt={slide.titleEn}
+                      className="w-full h-full object-cover p-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  )}
+                  
+                  {/* Overlay Tag */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/90 via-[#111111]/30 to-transparent flex flex-col justify-end p-8 text-white">
+                    <motion.p 
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: index === currentHeroIndex ? 1 : 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-xs font-bold uppercase tracking-widest text-[#FF9933] mb-1 drop-shadow-md flex items-center gap-2"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse" />
+                      {t('मुख्य आकर्षण • २०२६ उत्सव', 'CENTER OF ATTRACTION • 2026 FESTIVAL')}
+                    </motion.p>
+                    <motion.p 
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: index === currentHeroIndex ? 1 : 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-3xl sm:text-4xl font-extrabold font-marathi drop-shadow-lg"
+                    >
+                      {t(slide.titleMr, slide.titleEn)}
+                    </motion.p>
+                    {slide.descMr && (
+                      <motion.p 
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: index === currentHeroIndex ? 1 : 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="text-sm text-gray-200 mt-2 font-marathi font-medium line-clamp-2"
+                      >
+                        {t(slide.descMr, slide.descEn)}
+                      </motion.p>
+                    )}
+                  </div>
+                </div>
               ))}
-              
-              {/* Overlay Tag */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/80 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
-                <motion.p 
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-xs font-bold uppercase tracking-widest text-[#FF9933] mb-1 drop-shadow-md flex items-center gap-2"
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#FF9933] animate-pulse" />
-                  {t('मुख्य आकर्षण • २०२६ उत्सव', 'CENTER OF ATTRACTION • 2026 FESTIVAL')}
-                </motion.p>
-                <motion.p 
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="text-3xl sm:text-4xl font-extrabold font-marathi drop-shadow-lg"
-                >
-                  {t('मंडळाची अधिकृत जर्सी', 'Official Mandal Jersey')}
-                </motion.p>
-                <motion.p 
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.7 }}
-                  className="text-sm text-gray-200 mt-2 font-marathi font-medium"
-                >
-                  {t('आता बुकिंगसाठी उपलब्ध!', 'Now available for booking!')}
-                </motion.p>
-              </div>
             </div>
           </motion.div>
 

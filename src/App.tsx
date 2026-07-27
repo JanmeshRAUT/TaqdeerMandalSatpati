@@ -54,6 +54,7 @@ function AppContent() {
   const [activities, setActivities] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
+  const [settings, setSettings] = useState<any>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +63,7 @@ function AppContent() {
         if (adminPin) {
           headers['Authorization'] = `Bearer ${adminPin}`;
         }
-        const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes] = await Promise.all([
+        const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes] = await Promise.all([
           fetch('/api/announcements', { headers }).then(r => r.json()),
           fetch('/api/committee', { headers }).then(r => r.json()),
           fetch('/api/members', { headers }).then(r => r.json()),
@@ -71,7 +72,8 @@ function AppContent() {
           fetch('/api/milestones', { headers }).then(r => r.json()),
           fetch('/api/activities', { headers }).then(r => r.json()),
           fetch('/api/sponsors', { headers }).then(r => r.json()),
-          fetch('/api/jersey-bookings', { headers }).then(r => r.json())
+          fetch('/api/jersey-bookings', { headers }).then(r => r.json()),
+          fetch('/api/settings', { headers }).then(r => r.json())
         ]);
         setAnnouncements(Array.isArray(annRes) ? annRes : []);
         setCommittee(Array.isArray(comRes) ? comRes : []);
@@ -82,6 +84,7 @@ function AppContent() {
         setActivities(Array.isArray(actRes) ? actRes : []);
         setSponsors(Array.isArray(spoRes) ? spoRes : []);
         setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
+        setSettings(setRes || {});
       } catch (error) {
         console.error('Error fetching data from API:', error);
       }
@@ -119,6 +122,8 @@ function AppContent() {
             setActiveTab={setActiveTab}
             announcements={announcements}
             jerseyBookings={jerseyBookings}
+            settings={settings}
+            gallery={gallery}
           />
         )}
 
@@ -161,6 +166,7 @@ function AppContent() {
           <JerseyShopPage 
             bookings={jerseyBookings} 
             setActiveTab={setActiveTab} 
+            settings={settings}
           />
         )}
 

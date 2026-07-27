@@ -8,9 +8,10 @@ import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
 interface JerseyShopPageProps {
   bookings?: JerseyBooking[];
   setActiveTab: (tab: NavTab) => void;
+  settings?: any;
 }
 
-export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], setActiveTab }) => {
+export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], setActiveTab, settings }) => {
   const { t } = useLanguage();
   
   const [formData, setFormData] = useState({ name: '', address: '', phone: '' });
@@ -148,6 +149,27 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
         </div>
       </div>
 
+      {settings?.isJerseyRegistrationOpen === false ? (
+        <div className="relative z-10 flex flex-col items-center justify-center space-y-6 py-12 text-center">
+          <h3 className="text-3xl font-extrabold text-[#FF6A00] uppercase tracking-widest">{t('लवकरच येत आहे...', 'Coming Soon...')}</h3>
+          <p className="text-gray-600 font-medium max-w-lg mb-8">
+            {t('सध्या जर्सी बुकिंग बंद आहे. नवीन अपडेटसाठी संपर्कात राहा.', 'Jersey bookings are currently closed. Stay tuned for updates.')}
+          </p>
+          {settings?.jerseyComingSoonVideoUrl && (
+            <div className="w-full max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-gray-200">
+              <video 
+                src={settings.jerseyComingSoonVideoUrl} 
+                className="w-full h-auto aspect-video object-cover"
+                autoPlay 
+                muted 
+                loop 
+                controls 
+                playsInline
+              />
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="relative z-10">
         <AnimatePresence mode="wait">
           {successData ? (
@@ -507,6 +529,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
           )}
         </AnimatePresence>
       </div>
+      )}
     </div>
   );
 };
