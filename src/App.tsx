@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Loader2 } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { NavTab, JerseyBooking } from './types';
 import { Header } from './components/Header';
@@ -57,6 +58,7 @@ function AppContent() {
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchData = useCallback(async () => {
     try {
@@ -90,6 +92,8 @@ function AppContent() {
     } catch (error) {
       console.error('Error fetching data from API:', error);
       setIsBackendConnected(false);
+    } finally {
+      setIsLoading(false);
     }
   }, [adminPin]);
 
@@ -109,6 +113,27 @@ function AppContent() {
     setActivities(INITIAL_SOCIAL_ACTIVITIES);
     setSponsors(INITIAL_SPONSORS);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4 font-marathi">
+        <div className="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl flex items-center justify-center mb-8 relative border-4 border-white">
+          <div className="absolute inset-0 border-4 border-[#FF9933] border-t-transparent rounded-full animate-spin"></div>
+          <img src="/images/logo.png" alt="Logo" className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md z-10" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] mb-2 text-center">
+          कृपया थोडा वेळ प्रतीक्षा करा...
+        </h2>
+        <h3 className="text-xl sm:text-2xl font-bold text-[#FF9933] mb-6 text-center">
+          Please wait for a moment...
+        </h3>
+        <p className="text-gray-500 font-medium text-center max-w-md bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-100">
+          वेबसाईट लोड होत आहे. यास काही सेकंद लागू शकतात. <br/>
+          <span className="text-sm">The website is securely connecting to the server. This may take up to 30-50 seconds.</span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#111111]">
