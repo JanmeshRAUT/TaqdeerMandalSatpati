@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Shirt, CheckCircle, Loader2, Plus, Trash2, Users, Download, Phone } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JerseyBooking, JerseyBookingItem, NavTab } from '../types';
+import API_BASE_URL from '../config/api';
 
 interface JerseyShopPageProps {
   bookings?: JerseyBooking[];
@@ -75,7 +76,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
 
     try {
       const bookingId = Date.now().toString();
-      const bookingResponse = await fetch('/api/jersey-bookings', {
+      const bookingResponse = await fetch(`${API_BASE_URL}/api/jersey-bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

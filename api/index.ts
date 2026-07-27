@@ -31,7 +31,8 @@ const corsOptions = {
       process.env.APP_URL,
       'http://localhost:3000',
       'http://localhost:3001',
-      'http://localhost:5173'
+      'http://localhost:5173',
+      'https://taqdeer-mandal-satpati.vercel.app'
     ].filter(Boolean);
 
     const isAllowed = allowedOrigins.some(allowed => {
@@ -93,7 +94,7 @@ const requireAdmin = (req: express.Request, res: express.Response, next: express
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit to prevent huge base64 strings
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit for video uploads on Render
 });
 
 // Seed Database if empty
@@ -332,11 +333,9 @@ app.use('/api/activities', createRouter(SocialActivity));
 app.use('/api/sponsors', createRouter(Sponsor));
 app.use('/api/jersey-bookings', createRouter(JerseyBooking));
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 export default app;
 

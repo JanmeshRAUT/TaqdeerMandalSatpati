@@ -14,6 +14,7 @@ import { ContactSection } from './components/ContactSection';
 import { AdminPanel } from './components/AdminPanel';
 import { JerseyBookingsView } from './components/JerseyBookingsView';
 import { JerseyShopPage } from './components/JerseyShopPage';
+import API_BASE_URL from './config/api';
 
 import {
   INITIAL_ANNOUNCEMENTS,
@@ -63,16 +64,16 @@ function AppContent() {
         headers['Authorization'] = `Bearer ${adminPin}`;
       }
       const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes] = await Promise.all([
-        fetch('/api/announcements', { headers }).then(r => r.json()),
-        fetch('/api/committee', { headers }).then(r => r.json()),
-        fetch('/api/members', { headers }).then(r => r.json()),
-        fetch('/api/gallery', { headers }).then(r => r.json()),
-        fetch('/api/events', { headers }).then(r => r.json()),
-        fetch('/api/milestones', { headers }).then(r => r.json()),
-        fetch('/api/activities', { headers }).then(r => r.json()),
-        fetch('/api/sponsors', { headers }).then(r => r.json()),
-        fetch('/api/jersey-bookings', { headers }).then(r => r.json()),
-        fetch('/api/settings', { headers }).then(r => r.json())
+        fetch(`${API_BASE_URL}/api/announcements`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/committee`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/members`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/gallery`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/events`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/milestones`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/activities`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/sponsors`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/jersey-bookings`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/settings`, { headers }).then(r => r.json())
       ]);
       setAnnouncements(Array.isArray(annRes) ? annRes : []);
       setCommittee(Array.isArray(comRes) ? comRes : []);

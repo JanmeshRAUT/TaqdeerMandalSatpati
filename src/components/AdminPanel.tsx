@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_BASE_URL from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import {
   CommitteeMember,
@@ -74,7 +75,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setIsLoggingIn(true);
     setPinError(false);
     try {
-      const res = await fetch('/api/auth/verify', {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: pinInput })
@@ -126,7 +127,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (e) e.preventDefault();
     setIsSavingSettings(true);
     try {
-      const res = await fetch('/api/settings', {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminPin}` },
         body: JSON.stringify(localSettings)
@@ -151,7 +152,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     formData.append('image', file);
     try {
       showToast('अपलोड करत आहे... (Uploading...)');
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${adminPin}` },
         body: formData
@@ -173,7 +174,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     
     setIsUploadingGallery(true);
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -201,7 +202,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       date: new Date().toISOString().split('T')[0]
     };
     try {
-      const res = await fetch('/api/announcements', {
+      const res = await fetch(`${API_BASE_URL}/api/announcements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +219,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteAnnouncement = async (id: string) => {
     try {
-      await fetch(`/api/announcements/${id}`, {
+      await fetch(`${API_BASE_URL}/api/announcements/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -255,7 +256,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       bookingDate: new Date().toISOString()
     };
     try {
-      const res = await fetch('/api/jersey-bookings', {
+      const res = await fetch(`${API_BASE_URL}/api/jersey-bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -273,7 +274,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteJerseyBooking = async (id: string) => {
     try {
-      await fetch(`/api/jersey-bookings/${id}`, {
+      await fetch(`${API_BASE_URL}/api/jersey-bookings/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -287,7 +288,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const handleToggleJerseyBookingStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Pending' ? 'Verified' : 'Pending';
     try {
-      const res = await fetch(`/api/jersey-bookings/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/jersey-bookings/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +312,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     if (editingCommitteeId) {
       try {
-        const res = await fetch(`/api/committee/${editingCommitteeId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/committee/${editingCommitteeId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -338,7 +339,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         order: committee.length + 1
       };
       try {
-        const res = await fetch('/api/committee', {
+        const res = await fetch(`${API_BASE_URL}/api/committee`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -370,7 +371,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteCommittee = async (id: string) => {
     try {
-      await fetch(`/api/committee/${id}`, {
+      await fetch(`${API_BASE_URL}/api/committee/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -388,7 +389,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     if (editingMemberId) {
       try {
-        const res = await fetch(`/api/members/${editingMemberId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/members/${editingMemberId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -416,7 +417,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         isLifetimeMember: newMember.isLifetimeMember
       };
       try {
-        const res = await fetch('/api/members', {
+        const res = await fetch(`${API_BASE_URL}/api/members`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -450,7 +451,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteMember = async (id: string) => {
     try {
-      await fetch(`/api/members/${id}`, {
+      await fetch(`${API_BASE_URL}/api/members/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -468,7 +469,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     
     if (editingGalleryId) {
       try {
-        const res = await fetch(`/api/gallery/${editingGalleryId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/gallery/${editingGalleryId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -494,7 +495,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         isHeroPinned: newGallery.isHeroPinned
       };
       try {
-        const res = await fetch('/api/gallery', {
+        const res = await fetch(`${API_BASE_URL}/api/gallery`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -527,7 +528,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteGallery = async (id: string) => {
     try {
-      await fetch(`/api/gallery/${id}`, {
+      await fetch(`${API_BASE_URL}/api/gallery/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -540,7 +541,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await fetch(`/api/events/${id}`, {
+      await fetch(`${API_BASE_URL}/api/events/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${adminPin}`
@@ -1465,7 +1466,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       const formData = new FormData();
                       formData.append('image', e.target.files[0]);
                       try {
-                        const res = await fetch('/api/upload', {
+                        const res = await fetch(`${API_BASE_URL}/api/upload`, {
                           method: 'POST',
                           headers: { 'Authorization': `Bearer ${adminPin}` },
                           body: formData
