@@ -130,7 +130,6 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             variants={staggerContainer}
             initial="hidden"
             animate="show"
-            style={{ y: y1 }}
             className="lg:col-span-7 space-y-6 text-center lg:text-left relative z-10"
           >
             
@@ -159,13 +158,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             </motion.p>
 
             {/* CTA Buttons */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-6">
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-6">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveTab('history')}
                 id="hero-btn-history"
-                className="px-8 py-4 bg-gradient-premium text-white rounded-xl font-bold hover:shadow-[0_0_20px_rgba(255,106,0,0.4)] transition-shadow flex items-center gap-2.5 font-marathi text-sm shadow-xl cursor-pointer"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-premium text-white rounded-xl font-bold hover:shadow-[0_0_20px_rgba(255,106,0,0.4)] transition-shadow flex justify-center items-center gap-2.5 font-marathi text-sm shadow-xl cursor-pointer"
               >
                 <History className="w-4 h-4 text-[#FF6A00]" />
                 <span>{t('मंडळाचा इतिहास', 'Mandal History')}</span>
@@ -180,7 +179,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 id="hero-btn-jersey"
-                className="px-8 py-4 glass-panel rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 glass-panel rounded-xl font-bold transition-all flex justify-center items-center gap-2.5 font-marathi text-sm text-[#111111] hover-glow cursor-pointer relative overflow-hidden group border border-[#FF9933]/30"
               >
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                 <Shirt className="w-4 h-4 text-[#FF9933]" />
@@ -199,7 +198,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 id="hero-btn-jersey-view"
-                className="px-8 py-4 bg-white/50 backdrop-blur-md rounded-xl font-bold transition-all flex items-center gap-2.5 font-marathi text-sm text-gray-700 hover:bg-white cursor-pointer relative overflow-hidden border border-gray-200 shadow-sm"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white/50 backdrop-blur-md rounded-xl font-bold transition-all flex justify-center items-center gap-2.5 font-marathi text-sm text-gray-700 hover:bg-white cursor-pointer relative overflow-hidden border border-gray-200 shadow-sm"
               >
                 <List className="w-4 h-4 text-[#FF9933]" />
                 <span>{t('बुकिंग पहा', 'View Bookings')}</span>
@@ -229,8 +228,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
             variants={scaleUp}
             initial="hidden"
             animate="show"
-            style={{ y: y2 }}
-            className="lg:col-span-5 flex justify-center relative"
+            className="lg:col-span-5 flex justify-center relative mt-8 lg:mt-0"
           >
             {/* Background Glow */}
             <div className="absolute inset-0 bg-[#FF6A00]/20 blur-[100px] rounded-full animate-float-delayed pointer-events-none" />

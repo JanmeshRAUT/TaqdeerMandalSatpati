@@ -81,11 +81,11 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 focus:bg-white transition-all font-medium"
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <select
                 value={sizeFilter}
                 onChange={(e) => setSizeFilter(e.target.value)}
-                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer"
               >
                 <option value="all">{t('सर्व साईझ', 'All Sizes')}</option>
                 {Array.from({ length: 21 }, (_, i) => 10 + i * 2).map(s => (
@@ -159,7 +159,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             <div className="text-xs sm:text-sm font-bold text-gray-400">
               {t('तकदीर मित्र मंडळ, सातपाटी', 'Taqdeer Mitra Mandal, Satpati')}
             </div>
-            <div className="text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-2 rounded-lg whitespace-nowrap flex gap-4">
+            <div className="flex flex-col sm:flex-row text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-3 rounded-xl gap-2 sm:gap-4 items-center">
               <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{bookings.length}</span></span>
               <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{flattenedBookings.reduce((sum, b) => sum + (b.quantity || 1), 0)}</span></span>
             </div>

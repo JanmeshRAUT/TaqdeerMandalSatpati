@@ -243,7 +243,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                 </div>
               </div>
 
-              <div className="flex gap-4 w-full max-w-md">
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
                 <button
                   onClick={downloadTicket}
                   className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 shadow-lg cursor-pointer"
