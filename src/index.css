@@ -25,11 +25,13 @@
 
 .font-marathi {
   font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif;
+  letter-spacing: normal !important;
 }
 
 h1.font-marathi, h2.font-marathi, h3.font-marathi, h4.font-marathi, .font-marathi-festive {
   font-family: 'Amita', 'Poppins', 'Noto Sans Devanagari', sans-serif;
   font-weight: 700;
+  letter-spacing: normal !important;
 }
 
 .font-english {
