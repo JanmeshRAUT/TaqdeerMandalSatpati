@@ -226,10 +226,14 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100">
+                  <div className="pt-4 border-t border-gray-100 space-y-4">
                     <div>
                       <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('नोंदणीकृत फोन', 'Registered Phone')}</p>
                       <p className="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-2 rounded-lg mt-1 inline-block">{successData.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('पत्ता', 'Address')}</p>
+                      <p className="text-sm font-medium text-gray-800 bg-gray-50 px-3 py-2 rounded-lg mt-1 border border-gray-100">{successData.address}</p>
                     </div>
                   </div>
                 </div>

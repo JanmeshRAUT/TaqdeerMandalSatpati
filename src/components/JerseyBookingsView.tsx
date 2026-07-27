@@ -103,56 +103,107 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm flex-1">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('फोन', 'Phone')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
-                  <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-28 text-center">{t('स्थिती', 'Status')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredAndSortedBookings.length > 0 ? (
-                  filteredAndSortedBookings.map((booking) => (
-                    <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
-                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
-                      <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
-                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-800">{booking.phone}</td>
-                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
-                      <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
-                      <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
-                        <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">
-                          {booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}
-                        </span>
-                      </td>
-                      <td className="p-4 sm:p-5 text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                          }`}
-                        >
-                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
-                        </span>
+          <div className="rounded-2xl border border-gray-200 shadow-sm flex-1 overflow-hidden bg-white">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('फोन', 'Phone')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-28 text-center">{t('स्थिती', 'Status')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAndSortedBookings.length > 0 ? (
+                    filteredAndSortedBookings.map((booking) => (
+                      <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
+                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-800">{booking.phone}</td>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
+                          <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">
+                            {booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}
+                          </span>
+                        </td>
+                        <td className="p-4 sm:p-5 text-center">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                              booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                            }`}
+                          >
+                            {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="p-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-400">
+                          <Shirt className="w-12 h-12 mb-4 opacity-20" />
+                          <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="p-12 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-400">
-                        <Shirt className="w-12 h-12 mb-4 opacity-20" />
-                        <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden flex flex-col">
+              {filteredAndSortedBookings.length > 0 ? (
+                filteredAndSortedBookings.map((booking) => (
+                  <div key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-lg">{booking.name}</h4>
+                        <div className="text-sm font-bold text-gray-600 mt-0.5">{booking.phone}</div>
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm shrink-0 whitespace-nowrap ${
+                          booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                        }`}
+                      >
+                        {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 font-medium bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t('पत्ता', 'Address')}</span>
+                      {booking.address}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('प्रमाण', 'Qty')}</span>
+                        <span className="font-bold text-gray-900">{booking.quantity}</span>
+                      </div>
+                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('साईझ', 'Size')}</span>
+                        <span className="font-bold text-[#FF9933]">{booking.size}</span>
+                      </div>
+                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('स्लीव्ह', 'Sleeve')}</span>
+                        <span className="font-bold text-gray-700">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-12 text-center flex flex-col items-center justify-center text-gray-400">
+                  <Shirt className="w-12 h-12 mb-4 opacity-20" />
+                  <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
