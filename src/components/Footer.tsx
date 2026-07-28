@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white border border-[#C89B3C]/40 flex items-center justify-center text-[#FF9933] shadow-2xs font-bold font-marathi">
-                ॐ
+                <img src="/Logo.png" alt="logo" /> 
               </div>
               <div>
                 <h3 className="font-bold text-base font-marathi text-[#111111]">
