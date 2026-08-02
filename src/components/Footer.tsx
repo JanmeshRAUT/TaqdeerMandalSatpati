@@ -86,6 +86,11 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
                   {t('सामाजिक उपक्रम (Social Work)', 'Social Activities')}
                 </button>
               </li>
+              <li>
+                <button onClick={() => { setActiveTab('donation'); scrollToTop(); }} className="hover:text-[#FF9933] transition-colors">
+                  {t('देणगी (Donation)', 'Donation')}
+                </button>
+              </li>
             </ul>
           </div>
 

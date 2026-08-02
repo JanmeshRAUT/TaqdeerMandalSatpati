@@ -114,6 +114,19 @@ export interface JerseyBooking {
   status?: 'Pending' | 'Verified';
 }
 
+export interface DonationRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address?: string;
+  details?: string;
+  amount: number | string;
+  transactionId: string;
+  date: string;
+  status?: 'Pending' | 'Verified';
+}
+
 export type NavTab = 
   | 'home' 
   | 'history' 
@@ -125,4 +138,5 @@ export type NavTab =
   | 'contact' 
   | 'admin'
   | 'jersey-bookings'
-  | 'jersey-shop';
+  | 'jersey-shop'
+  | 'donation';

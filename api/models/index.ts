@@ -114,6 +114,20 @@ const JerseyBookingSchema = new Schema({
   status: { type: String, default: 'Pending' } // 'Pending' or 'Verified'
 });
 
+const DonationRecordSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  receiptNo: { type: String, unique: true, sparse: true },
+  name: { type: String, required: true },
+  email: { type: String, default: '' },
+  phone: { type: String, default: '' },
+  address: { type: String, default: '' },
+  details: { type: String, default: 'देणगी' },
+  amount: { type: String, required: true },
+  transactionId: { type: String, required: true },
+  date: { type: String, required: true },
+  status: { type: String, default: 'Pending' }
+});
+
 export const CommitteeMember = mongoose.model('CommitteeMember', CommitteeMemberSchema);
 export const DirectoryMember = mongoose.model('DirectoryMember', DirectoryMemberSchema);
 export const GalleryItem = mongoose.model('GalleryItem', GalleryItemSchema);
@@ -123,6 +137,7 @@ export const SocialActivity = mongoose.model('SocialActivity', SocialActivitySch
 export const Sponsor = mongoose.model('Sponsor', SponsorSchema);
 export const Announcement = mongoose.model('Announcement', AnnouncementSchema);
 export const JerseyBooking = mongoose.model('JerseyBooking', JerseyBookingSchema);
+export const DonationRecord = mongoose.model('DonationRecord', DonationRecordSchema);
 
 const SettingsSchema = new Schema({
   heroTitleMr: { type: String, default: 'श्री सार्वजनिक गणेशोत्सव' },

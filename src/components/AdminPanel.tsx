@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import { Receipt } from './Receipt';
 import API_BASE_URL from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -9,11 +12,12 @@ import {
   SocialActivity,
   Sponsor,
   Announcement,
-  JerseyBooking
+  JerseyBooking,
+  DonationRecord
 } from '../types';
 import { 
   Lock, Key, Shield, Plus, Trash2, Edit3, Save, RotateCcw, Download, Upload, 
-  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check, Shirt, Search, ArrowUpDown 
+  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check, Shirt, Search, ArrowUpDown, IndianRupee, Mail, UserPlus, X 
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -33,6 +37,8 @@ interface AdminPanelProps {
   setSponsors: React.Dispatch<React.SetStateAction<Sponsor[]>>;
   jerseyBookings: JerseyBooking[];
   setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
+  donations: DonationRecord[];
+  setDonations: React.Dispatch<React.SetStateAction<DonationRecord[]>>;
   settings: any;
   setSettings: (settings: any) => void;
   refetchData: () => void;
@@ -51,6 +57,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   activities, setActivities,
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
+  donations, setDonations,
   settings,
   setSettings,
   refetchData,
@@ -63,8 +70,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'backup'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'donations' | 'backup'>('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isAddingOfflineDonation, setIsAddingOfflineDonation] = useState(false);
+  const [verifyProgress, setVerifyProgress] = useState<{current: number, total: number, message: string} | null>(null);
+  const [offlineDonationData, setOfflineDonationData] = useState({ name: '', phone: '', email: '', amount: '', details: '', address: '' });
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -305,6 +315,191 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } catch (err) {
       showToast('त्रुटी (Error)'); console.error(err);
     }
+  };
+
+  // Donations Handlers
+  const handleDeleteDonation = async (id: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/donations/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${adminPin}` }
+      });
+      setDonations(donations.filter(d => d.id !== id));
+      showToast('देणगी रेकॉर्ड डिलीट केले (Donation Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const [receiptDonation, setReceiptDonation] = useState<DonationRecord | null>(null);
+
+  const generateReceiptBase64 = (donation: DonationRecord): Promise<string | null | {error: string}> => {
+    return new Promise((resolve) => {
+      setReceiptDonation(donation);
+      setTimeout(async () => {
+        const el = document.getElementById('admin-hidden-receipt');
+        if (el) {
+          try {
+            const canvas = await html2canvas(el as HTMLElement, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              width: 1536,
+              height: 1024
+            });
+            // Output as compressed JPEG to reduce email attachment size
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(dataUrl);
+          } catch (e: any) {
+            console.error('html2canvas error', e);
+            resolve({ error: e.message || String(e) });
+          } finally {
+            setReceiptDonation(null);
+          }
+        } else {
+          resolve({ error: 'Hidden element not found in DOM' });
+        }
+      }, 400);
+    });
+  };
+
+  const handleDownloadReceipt = async (donation: DonationRecord) => {
+    showToast('पावती तयार करत आहे... (Generating receipt...)');
+    const result = await generateReceiptBase64(donation);
+    if (typeof result === 'string') {
+      const a = document.createElement('a');
+      a.href = result;
+      a.download = `Receipt_${(donation as any).receiptNo || donation.transactionId || 'Donation'}.png`;
+      a.click();
+      showToast('पावती डाउनलोड झाली (Receipt Downloaded)');
+    } else {
+      showToast(`त्रुटी: ${result?.error || 'Unknown error'}`);
+    }
+  };
+
+  const handleAddOfflineDonation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        id: `don_${Date.now()}`,
+        ...offlineDonationData,
+        transactionId: 'CASH-' + Date.now().toString().slice(-6),
+        status: 'Verified',
+        date: new Date().toISOString()
+      };
+      const res = await fetch(`${API_BASE_URL}/api/donations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast('ऑफलाइन देणगी जोडली (Offline Donation Added)');
+        setIsAddingOfflineDonation(false);
+        setOfflineDonationData({ name: '', phone: '', email: '', amount: '', details: '', address: '' });
+        refetchData();
+      } else {
+        showToast('त्रुटी (Error adding donation)');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('त्रुटी (Error)');
+    }
+  };
+
+  const handleToggleDonationStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'Pending' ? 'Verified' : 'Pending';
+    const targetDonation = donations.find(d => d.id === id);
+
+    let imageBase64: string | null = null;
+    if (newStatus === 'Verified' && targetDonation && targetDonation.email) {
+      setVerifyProgress({ current: 0, total: 1, message: `पावती तयार करत आहे... (${targetDonation.name})` });
+      const result = await generateReceiptBase64(targetDonation);
+      if (typeof result === 'string') imageBase64 = result;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/donations/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setDonations(donations.map(d => d.id === id ? { ...d, status: newStatus } : d));
+        
+        if (imageBase64) {
+          const emailRes = await fetch(`${API_BASE_URL}/api/donations/${id}/send-receipt`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminPin}`
+            },
+            body: JSON.stringify({ imageData: imageBase64 })
+          });
+          
+          if (emailRes.ok) {
+            showToast('देणगी पडताळली & पावती पाठवली (Verified & Receipt Sent)');
+          } else {
+            showToast('देणगी पडताळली पण पावती पाठवण्यात त्रुटी (Verified but Email Failed)');
+          }
+        } else {
+          showToast('देणगी पडताळली (Verified)');
+        }
+      }
+    } catch (err) {
+      showToast('त्रुटी (Error)'); console.error(err);
+    } finally {
+      setVerifyProgress(null);
+    }
+  };
+
+  const handleVerifyAllPending = async () => {
+    const pendingDonations = donations.filter(d => d.status !== 'Verified');
+    if (pendingDonations.length === 0) {
+      showToast('कोणतीही प्रलंबित देणगी नाही (No pending donations)');
+      return;
+    }
+    
+    if (!window.confirm(`तुम्हाला खात्री आहे की तुम्हाला ${pendingDonations.length} देणगीदारांना पावती पाठवायची आहे? (Are you sure you want to verify and send receipts to ${pendingDonations.length} donors?)`)) return;
+
+    for (let i = 0; i < pendingDonations.length; i++) {
+      const donation = pendingDonations[i];
+      setVerifyProgress({ current: i + 1, total: pendingDonations.length, message: `प्रक्रिया करत आहे... (${donation.name})` });
+      
+      let imageBase64: string | null = null;
+      if (donation.email) {
+        const result = await generateReceiptBase64(donation);
+        if (typeof result === 'string') imageBase64 = result;
+      }
+      
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/donations/${donation.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminPin}` },
+          body: JSON.stringify({ status: 'Verified' })
+        });
+        if (res.ok) {
+          setDonations(prev => prev.map(d => d.id === donation.id ? { ...d, status: 'Verified' } : d));
+          
+          if (imageBase64) {
+            await fetch(`${API_BASE_URL}/api/donations/${donation.id}/send-receipt`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminPin}` },
+              body: JSON.stringify({ imageData: imageBase64 })
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error verifying donation:', err);
+      }
+    }
+    
+    setVerifyProgress(null);
+    showToast('सर्व प्रलंबित देणग्या पडताळल्या! (All pending verified)');
   };
 
   // Add or Edit Committee Member
@@ -554,25 +749,104 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
-  // Export JSON Backup
+  // Export EXCEL Backup
   const handleExportBackup = () => {
-    const backupData = {
-      announcements,
-      committee,
-      members,
-      gallery,
-      events,
-      activities,
-      sponsors,
-      exportedAt: new Date().toISOString()
+    const wb = XLSX.utils.book_new();
+
+    const addSheet = (data: any[], name: string) => {
+      if (data && data.length > 0) {
+        const ws = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, name.substring(0, 31));
+      }
     };
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(backupData, null, 2))}`;
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', jsonString);
-    downloadAnchor.setAttribute('download', `taqdeer_satpati_backup_${Date.now()}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+
+    addSheet(announcements, "Announcements");
+    addSheet(committee, "Committee");
+    addSheet(members, "Members");
+    addSheet(gallery, "Gallery");
+    addSheet(events, "Events");
+    addSheet(activities, "Activities");
+    addSheet(sponsors, "Sponsors");
+    addSheet(donations, "Donations");
+    
+    // Flatten Jersey Bookings slightly for better Excel view
+    const flatBookings = jerseyBookings.map(b => ({
+      ...b,
+      items: JSON.stringify(b.items) // Convert items array to string representation
+    }));
+    addSheet(flatBookings, "Jersey Bookings");
+
+    XLSX.writeFile(wb, `Taqdeer_Mandal_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+    showToast('एक्सेल फाइल डाऊनलोड झाली (Excel Downloaded)');
+  };
+
+  // Download Template for Bulk Upload
+  const handleDownloadTemplate = (sectionName: string, columns: string[]) => {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet([columns.reduce((acc, col) => ({ ...acc, [col]: '' }), {})]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, `${sectionName}_Upload_Template.xlsx`);
+  };
+
+  // Generic Bulk Upload Handler
+  const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>, apiRoute: string, processRow: (row: any) => any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    showToast('फाइल अपलोड सुरू... (Uploading...)');
+    setVerifyProgress({ current: 0, total: 1, message: 'वाचत आहे... (Reading file)' });
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const data = evt.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheet = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+        
+        if (rows.length === 0) {
+          showToast('फाइल रिकामी आहे (File is empty)');
+          setVerifyProgress(null);
+          return;
+        }
+
+        let successCount = 0;
+        for (let i = 0; i < rows.length; i++) {
+          setVerifyProgress({ current: i + 1, total: rows.length, message: `अपलोड करत आहे... (Uploading ${i+1}/${rows.length})` });
+          const payload = processRow(rows[i]);
+          
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/${apiRoute}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminPin}`
+              },
+              body: JSON.stringify(payload)
+            });
+            if (res.ok) successCount++;
+          } catch (err) {
+            console.error(`Error uploading row ${i}`, err);
+          }
+        }
+        
+        showToast(`${successCount} रेकॉर्ड अपलोड झाले (Uploaded ${successCount} records)`);
+        
+        // Re-fetch data depending on the route (a simple window reload is safest to refresh all admin data for now, or just alert)
+        // Ideally we'd call the parent refetch, but since it's not passed as a prop, we will just reload the page after a brief delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+
+      } catch (err) {
+        showToast('त्रुटी (Error processing file)');
+        console.error(err);
+      } finally {
+        setVerifyProgress(null);
+        if (e.target) e.target.value = ''; // Reset input
+      }
+    };
+    reader.readAsBinaryString(file);
   };
 
   if (!isAuthenticated) {
@@ -646,7 +920,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             className="px-3.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold border border-gray-700 flex items-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5 text-[#FF9933]" />
-            <span>{t('बैकअप डाऊनलोड (JSON)', 'Export Backup')}</span>
+            <span>{t('एक्सेल डाऊनलोड (Excel)', 'Export Excel')}</span>
           </button>
 
           <button
@@ -660,19 +934,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {t('बाहेर पडा (Logout)', 'Logout')}
           </button>
 
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs font-medium bg-white/50 py-2 rounded-lg border border-gray-100">
-            <span className="relative flex h-2.5 w-2.5">
+          <div className="flex items-center justify-center" title={isBackendConnected ? 'Backend Connected' : 'Backend Disconnected'}>
+            <span className="relative flex h-3 w-3">
               {isBackendConnected ? (
                 <>
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </>
               ) : (
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
               )}
-            </span>
-            <span className={isBackendConnected ? "text-emerald-700" : "text-red-600"}>
-              {isBackendConnected ? 'Backend Connected' : 'Backend Disconnected'}
             </span>
           </div>
         </div>
@@ -765,6 +1036,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           >
             <Shirt className="w-4 h-4" />
             <span>{t('जर्सी बुकिंग लिस्ट', 'Bookings List')}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('donations')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'donations' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <IndianRupee className="w-4 h-4" />
+            <span>{t('देणगी यादी', 'Donations List')}</span>
           </button>
 
           <button
@@ -911,10 +1192,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           
           {/* Add Form */}
           <form onSubmit={handleAddAnnouncement} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#FF9933]" />
-              <span>{t('नवी सूचना जोडा', 'Add New Announcement')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#FF9933]" />
+                <span>{t('नवी सूचना जोडा', 'Add New Announcement')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('Announcements', ['textMr', 'textEn', 'isUrgent'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" />
+                  Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'announcements', (row) => ({ textMr: row.textMr || '', textEn: row.textEn || '', isUrgent: String(row.isUrgent).toLowerCase() === 'true' }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
@@ -972,10 +1263,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeTab === 'committee' && (
         <div className="space-y-6">
           <form onSubmit={handleAddCommittee} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              {editingCommitteeId ? <Edit3 className="w-4 h-4 text-[#FF9933]" /> : <Plus className="w-4 h-4 text-[#FF9933]" />}
-              <span>{editingCommitteeId ? t('सदस्य माहिती अद्ययावत करा', 'Update Committee Member') : t('नवीन कार्यकारिणी सदस्य जोडा', 'Add Committee Member')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                {editingCommitteeId ? <Edit3 className="w-4 h-4 text-[#FF9933]" /> : <Plus className="w-4 h-4 text-[#FF9933]" />}
+                <span>{editingCommitteeId ? t('सदस्य माहिती अद्ययावत करा', 'Update Committee Member') : t('नवीन कार्यकारिणी सदस्य जोडा', 'Add Committee Member')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('Committee', ['nameMr', 'nameEn', 'roleMr', 'roleEn', 'termYear', 'photoUrl', 'phone'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'committee', (row) => ({ nameMr: row.nameMr || '', nameEn: row.nameEn || '', roleMr: row.roleMr || '', roleEn: row.roleEn || '', termYear: row.termYear || '2026-2027', photoUrl: row.photoUrl || '', phone: row.phone ? String(row.phone) : '' }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div>
@@ -1096,10 +1396,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeTab === 'members' && (
         <div className="space-y-6">
           <form onSubmit={handleAddMember} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              {editingMemberId ? <Edit3 className="w-4 h-4 text-[#FF9933]" /> : <Plus className="w-4 h-4 text-[#FF9933]" />}
-              <span>{editingMemberId ? t('सभासद माहिती अद्ययावत करा', 'Update Member') : t('नवीन सभासद जोडा', 'Add Member')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                {editingMemberId ? <Edit3 className="w-4 h-4 text-[#FF9933]" /> : <Plus className="w-4 h-4 text-[#FF9933]" />}
+                <span>{editingMemberId ? t('सभासद माहिती अद्ययावत करा', 'Update Member') : t('नवीन सभासद जोडा', 'Add Member')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('Members', ['nameMr', 'nameEn', 'joinedYear', 'bloodGroup', 'phone', 'locationMr', 'locationEn', 'photoUrl', 'isLifetimeMember'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'members', (row) => ({ nameMr: row.nameMr || '', nameEn: row.nameEn || '', joinedYear: parseInt(row.joinedYear) || 2026, bloodGroup: row.bloodGroup || '', phone: row.phone ? String(row.phone) : '', locationMr: row.locationMr || '', locationEn: row.locationEn || '', photoUrl: row.photoUrl || '', isLifetimeMember: String(row.isLifetimeMember).toLowerCase() === 'true' }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div>
@@ -1247,10 +1556,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeTab === 'gallery' && (
         <div className="space-y-6">
           <form onSubmit={handleAddGallery} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#FF9933]" />
-              <span>{t('गॅलरीमध्ये फोटो जोडा', 'Add Photo to Gallery')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#FF9933]" />
+                <span>{t('गॅलरीमध्ये फोटो जोडा', 'Add Photo to Gallery')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('Gallery', ['titleMr', 'titleEn', 'category', 'year', 'imageUrl', 'isHeroPinned'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'gallery', (row) => ({ titleMr: row.titleMr || '', titleEn: row.titleEn || '', category: row.category || 'idol', year: parseInt(row.year) || 2026, imageUrl: row.imageUrl || '', isHeroPinned: String(row.isHeroPinned).toLowerCase() === 'true' }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
               <div>
@@ -1427,10 +1745,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeTab === 'history' && (
         <div className="space-y-6">
           <form onSubmit={handleAddMilestone} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#FF9933]" />
-              <span>{t('नवीन इतिहास जोडा', 'Add History Milestone')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#FF9933]" />
+                <span>{t('नवीन इतिहास जोडा', 'Add History Milestone')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('History', ['year', 'titleMr', 'titleEn', 'descriptionMr', 'descriptionEn', 'imageUrl'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'history', (row) => ({ year: String(row.year) || '', titleMr: row.titleMr || '', titleEn: row.titleEn || '', descriptionMr: row.descriptionMr || '', descriptionEn: row.descriptionEn || '', imageUrl: row.imageUrl || '' }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
@@ -1574,10 +1901,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeTab === 'jersey-bookings' && (
         <div className="space-y-6">
           <form onSubmit={handleAddJerseyBooking} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#FF9933]" />
-              <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
-            </h3>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#FF9933]" />
+                <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
+              </h3>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => handleDownloadTemplate('JerseyBookings', ['name', 'phone', 'address', 'totalAmount', 'status', 'items_json_string'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                  <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                  <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'jersey-bookings', (row) => ({ name: row.name || '', phone: row.phone ? String(row.phone) : '', address: row.address || '', totalAmount: Number(row.totalAmount) || 0, status: row.status || 'Pending', items: row.items_json_string ? JSON.parse(row.items_json_string) : [] }))} />
+                </label>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
@@ -1785,6 +2121,191 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
+      {/* TAB CONTENT: DONATIONS */}
+      {activeTab === 'donations' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+              <div className="flex items-center gap-4">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <IndianRupee className="w-5 h-5 text-[#FF9933]" />
+                  {t('देणगी रेकॉर्ड्स (Donations Records)', 'Donation Records')}
+                </h3>
+                {verifyProgress && (
+                  <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 min-w-[200px]">
+                    <div className="w-4 h-4 border-2 border-gray-200 border-t-[#FF9933] rounded-full animate-spin shrink-0"></div>
+                    <div className="flex-1">
+                      <div className="text-[10px] font-bold text-gray-700">{verifyProgress.message}</div>
+                      {verifyProgress.total > 1 && (
+                        <div className="h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                          <div 
+                            className="h-full bg-[#FF9933] transition-all duration-300"
+                            style={{ width: `${(verifyProgress.current / verifyProgress.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                    {verifyProgress.total > 1 && (
+                      <div className="text-[10px] font-bold text-gray-500 shrink-0">
+                        {verifyProgress.current}/{verifyProgress.total}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={() => handleDownloadTemplate('Donations', ['name', 'phone', 'email', 'amount', 'transactionId', 'address', 'details', 'status'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
+                  <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                    <Upload className="w-3.5 h-3.5" /> Bulk Upload
+                    <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'donations', (row) => ({ name: row.name || '', phone: row.phone ? String(row.phone) : '', email: row.email || '', amount: row.amount ? String(row.amount) : '', transactionId: row.transactionId ? String(row.transactionId) : '', address: row.address || '', details: row.details || '', status: row.status || 'Pending' }))} />
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  {donations.filter(d => d.status !== 'Verified').length > 0 && (
+                    <button
+                      onClick={handleVerifyAllPending}
+                      disabled={!!verifyProgress}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors text-sm shadow-sm"
+                    >
+                      <Check className="w-4 h-4" />
+                      Confirm all Pending ({donations.filter(d => d.status !== 'Verified').length})
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsAddingOfflineDonation(!isAddingOfflineDonation)}
+                    className="bg-[#FF9933] hover:bg-[#e68a2e] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors text-sm shadow-sm"
+                  >
+                    {isAddingOfflineDonation ? '× रद्द करा (Cancel)' : '+ नवीन देणगी (Add Offline Donation)'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {isAddingOfflineDonation && (
+              <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-5">
+                <h4 className="font-bold text-gray-800 mb-4 text-sm">ऑफलाइन देणगी जोडा (Add Offline Donation)</h4>
+                <form onSubmit={handleAddOfflineDonation} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    required
+                    placeholder="नाव (Name)"
+                    value={offlineDonationData.name}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, name: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="फोन (Phone) - Optional"
+                    value={offlineDonationData.phone}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, phone: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none"
+                  />
+                  <input
+                    type="email"
+                    placeholder="ईमेल (Email) - Optional"
+                    value={offlineDonationData.email}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, email: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none"
+                  />
+                  <input
+                    type="text"
+                    required
+                    placeholder="रक्कम (Amount)"
+                    value={offlineDonationData.amount}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, amount: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="पत्ता (Address) - Optional"
+                    value={offlineDonationData.address}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, address: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none md:col-span-2"
+                  />
+                  <input
+                    type="text"
+                    placeholder="तपशील (Details) - Optional, default: देणगी"
+                    value={offlineDonationData.details}
+                    onChange={(e) => setOfflineDonationData({...offlineDonationData, details: e.target.value})}
+                    className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#FF9933] focus:border-transparent outline-none md:col-span-2"
+                  />
+                  <div className="md:col-span-2 flex justify-end">
+                    <button type="submit" className="bg-[#FF9933] text-white px-6 py-2 rounded-lg font-bold">
+                      जोडा (Add)
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+            
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('फोन', 'Phone')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('ईमेल', 'Email')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('रक्कम', 'Amount')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('UTR / Trx ID', 'Trx ID')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-center">{t('स्थिती', 'Status')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {donations.map((donation) => (
+                    <tr key={donation.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 text-sm font-medium text-gray-900">{donation.name}</td>
+                      <td className="p-4 text-sm text-gray-800 font-bold">{donation.phone}</td>
+                      <td className="p-4 text-sm text-gray-600">{donation.email}</td>
+                      <td className="p-4 text-sm font-bold text-[#FF9933]">₹{donation.amount}</td>
+                      <td className="p-4 text-sm text-gray-500 font-mono">{donation.transactionId}</td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => handleToggleDonationStatus(donation.id, donation.status || 'Pending')}
+                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm transition-colors cursor-pointer ${
+                            donation.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          }`}
+                        >
+                          {donation.status === 'Verified' ? 'Verified ✓' : 'Verify'}
+                        </button>
+                      </td>
+                      <td className="p-4 text-right flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDownloadReceipt(donation)}
+                          className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Download Receipt"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDonation(donation.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Donation Record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {donations.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">
+                        {t('कोणतीही देणगी आढळली नाही.', 'No donations found.')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 text-xs font-bold text-gray-400 flex justify-end gap-4">
+              <span>{t('एकूण देणगीदार:', 'Total Donors:')} <span className="text-gray-700">{donations.length}</span></span>
+              <span>{t('एकूण रक्कम:', 'Total Amount:')} <span className="text-emerald-600">₹{donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0)}</span></span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB CONTENT 7: RESET DATA */}
       {activeTab === 'backup' && (
         <div className="p-8 rounded-2xl bg-red-50 border border-red-200 text-center space-y-4">
@@ -1806,11 +2327,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     </div>
     </div>
+
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 z-50 border border-gray-700">
           <Check className="w-5 h-5 text-green-400" />
           <span className="text-sm font-bold font-marathi">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Hidden Receipt Element for html2canvas capture */}
+      {receiptDonation && (
+        <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', zIndex: -1 }}>
+          <div id="admin-hidden-receipt">
+            <Receipt ref={receiptRef} data={receiptDonation} />
+          </div>
         </div>
       )}
 

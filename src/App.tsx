@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { NavTab, JerseyBooking } from './types';
+import { NavTab, JerseyBooking, DonationRecord } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeSection } from './components/HomeSection';
@@ -15,6 +15,7 @@ import { ContactSection } from './components/ContactSection';
 import { AdminPanel } from './components/AdminPanel';
 import { JerseyBookingsView } from './components/JerseyBookingsView';
 import { JerseyShopPage } from './components/JerseyShopPage';
+import { DonationSection } from './components/DonationSection';
 import API_BASE_URL from './config/api';
 
 import {
@@ -56,6 +57,7 @@ function AppContent() {
   const [activities, setActivities] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
+  const [donations, setDonations] = useState<DonationRecord[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -66,7 +68,7 @@ function AppContent() {
       if (adminPin) {
         headers['Authorization'] = `Bearer ${adminPin}`;
       }
-      const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes] = await Promise.all([
+      const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes, donRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/announcements`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/committee`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/members`, { headers }).then(r => r.json()),
@@ -76,7 +78,8 @@ function AppContent() {
         fetch(`${API_BASE_URL}/api/activities`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/sponsors`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/jersey-bookings`, { headers }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/settings`, { headers }).then(r => r.json())
+        fetch(`${API_BASE_URL}/api/settings`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/donations`, { headers }).then(r => r.json())
       ]);
       setAnnouncements(Array.isArray(annRes) ? annRes : []);
       setCommittee(Array.isArray(comRes) ? comRes : []);
@@ -87,6 +90,7 @@ function AppContent() {
       setActivities(Array.isArray(actRes) ? actRes : []);
       setSponsors(Array.isArray(spoRes) ? spoRes : []);
       setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
+      setDonations(Array.isArray(donRes) ? donRes : []);
       setSettings(setRes || {});
       setIsBackendConnected(true);
     } catch (error) {
@@ -185,6 +189,10 @@ function AppContent() {
           <ContactSection />
         )}
 
+        {activeTab === 'donation' && (
+          <DonationSection />
+        )}
+
         {activeTab === 'jersey-bookings' && (
           <JerseyBookingsView 
             bookings={jerseyBookings} 
@@ -220,6 +228,8 @@ function AppContent() {
             setSponsors={setSponsors}
             jerseyBookings={jerseyBookings}
             setJerseyBookings={setJerseyBookings}
+            donations={donations}
+            setDonations={setDonations}
             settings={settings}
             setSettings={setSettings}
             refetchData={fetchData}
