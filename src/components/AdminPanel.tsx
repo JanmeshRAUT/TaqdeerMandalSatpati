@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { Receipt } from './Receipt';
+import { JerseyTicket } from './JerseyTicket';
 import API_BASE_URL from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -374,6 +375,88 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } else {
       showToast(`त्रुटी: ${result?.error || 'Unknown error'}`);
     }
+  };
+
+  const ticketRef = useRef<HTMLDivElement>(null);
+  const [ticketBooking, setTicketBooking] = useState<any>(null);
+
+  const generateTicketBase64 = (booking: any): Promise<string | null | {error: string}> => {
+    return new Promise((resolve) => {
+      setTicketBooking(booking);
+      setTimeout(async () => {
+        const el = document.getElementById('admin-hidden-ticket');
+        if (el) {
+          try {
+            const canvas = await html2canvas(el as HTMLElement, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+            });
+            const dataUrl = canvas.toDataURL('image/png');
+            resolve(dataUrl);
+          } catch (e: any) {
+            console.error('html2canvas error', e);
+            resolve({ error: e.message || String(e) });
+          } finally {
+            setTicketBooking(null);
+          }
+        } else {
+          resolve({ error: 'Hidden element not found in DOM' });
+        }
+      }, 400);
+    });
+  };
+
+  const handleDownloadTicket = async (bookingId: string) => {
+    const fullBooking = jerseyBookings.find(b => b.id === bookingId);
+    if (!fullBooking) return;
+    
+    showToast('तिकीट तयार करत आहे... (Generating ticket...)');
+    const result = await generateTicketBase64(fullBooking);
+    if (typeof result === 'string') {
+      const a = document.createElement('a');
+      a.href = result;
+      a.download = `Ticket_${fullBooking.id}.png`;
+      a.click();
+      showToast('तिकीट डाउनलोड झाले (Ticket Downloaded)');
+    } else {
+      showToast(`त्रुटी: ${result?.error || 'Unknown error'}`);
+    }
+  };
+
+  const handleDownloadJerseyBookingsExcel = () => {
+    const flatData = jerseyBookings.flatMap(b => {
+      if (!b.items || b.items.length === 0) {
+         return [{
+           ID: b.id,
+           Name: b.name,
+           Phone: b.phone,
+           Address: b.address,
+           BookingDate: new Date(b.bookingDate || Date.now()).toLocaleDateString(),
+           Status: b.status || 'Pending',
+           Size: '',
+           SleeveType: '',
+           Quantity: 0
+         }];
+      }
+      return b.items.map(i => ({
+         ID: b.id,
+         Name: b.name,
+         Phone: b.phone,
+         Address: b.address,
+         BookingDate: new Date(b.bookingDate || Date.now()).toLocaleDateString(),
+         Status: b.status || 'Pending',
+         Size: i.size,
+         SleeveType: i.sleeveType,
+         Quantity: i.quantity
+      }));
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(flatData);
+    XLSX.utils.book_append_sheet(wb, ws, "Jersey Bookings");
+    XLSX.writeFile(wb, `Jersey_Bookings_${new Date().toISOString().split('T')[0]}.xlsx`);
+    showToast('एक्सेल फाइल डाउनलोड झाली (Excel Downloaded)');
   };
 
   const handleAddOfflineDonation = async (e: React.FormEvent) => {
@@ -1183,6 +1266,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <video src={localSettings.jerseyComingSoonVideoUrl} className="mt-4 w-64 rounded-xl shadow-md border" controls />
                 )}
               </div>
+
+              <div className="pt-4 border-t border-gray-100">
+                <label className="block font-bold text-gray-700 mb-2">Jersey Display Images</label>
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {(localSettings.jerseyDisplayImages || []).map((imgUrl: string, idx: number) => (
+                    <div key={idx} className="relative">
+                      <img src={imgUrl} className="w-24 h-24 object-cover rounded-xl shadow-sm border border-gray-200" alt={`Jersey ${idx + 1}`} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImages = [...(localSettings.jerseyDisplayImages || [])];
+                          newImages.splice(idx, 1);
+                          setLocalSettings({...localSettings, jerseyDisplayImages: newImages});
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={e => handleGenericFileUpload(e, url => {
+                    const currentImages = localSettings.jerseyDisplayImages || [];
+                    setLocalSettings({...localSettings, jerseyDisplayImages: [...currentImages, url]});
+                    e.target.value = ''; // Reset input so same file can be selected again if needed
+                  })} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                />
+              </div>
             </div>
           )}
 
@@ -1907,6 +2022,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
               </h3>
               <div className="flex gap-2">
+                <button type="button" onClick={handleDownloadJerseyBookingsExcel} className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200 border border-green-200 flex items-center gap-1">
+                  <Download className="w-3.5 h-3.5" /> Download Excel
+                </button>
                 <button type="button" onClick={() => handleDownloadTemplate('JerseyBookings', ['name', 'phone', 'address', 'totalAmount', 'status', 'items_json_string'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
                 <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
                   <Upload className="w-3.5 h-3.5" /> Bulk Upload
@@ -2054,7 +2172,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
@@ -2092,7 +2210,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
                         </button>
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right flex justify-end gap-2">
+                        {booking.status === 'Verified' && (
+                          <button
+                            onClick={() => handleDownloadTicket(booking.bookingId)}
+                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Download Ticket"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteJerseyBooking(booking.bookingId)}
                           className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -2105,13 +2232,74 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   ))}
                   {jerseyBookings.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-gray-500 font-medium">
+                      <td colSpan={8} className="p-8 text-center text-gray-500 font-medium">
                         {t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View for Jersey Bookings */}
+            <div className="md:hidden flex flex-col gap-4 mt-4">
+              {jerseyBookings
+                .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
+                .filter(b => bookingSizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(bookingSizeFilter))))
+                .map((booking) => (
+                  <div key={`${booking.id}-mobile`} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-lg">{booking.name}</h3>
+                        <p className="text-sm font-semibold text-gray-500">{booking.phone}</p>
+                      </div>
+                      <div className="flex flex-col gap-2 items-end">
+                        <button
+                          onClick={() => handleToggleJerseyBookingStatus(booking.id, booking.status)}
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                        </button>
+                        <div className="flex gap-2">
+                          {booking.status === 'Verified' && (
+                            <button
+                              onClick={() => handleDownloadTicket(booking.id)}
+                              className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Download Ticket"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDeleteJerseyBooking(booking.id)}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Entire Booking"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">{booking.address}</p>
+                    
+                    <div className="space-y-1.5">
+                      {(booking.items || []).map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg text-sm border border-gray-100">
+                          <div className="font-bold text-gray-700">Size <span className="text-[#FF9933]">{item.size}</span> <span className="text-gray-300 mx-1">|</span> {item.sleeveType === 'Half' ? 'Half' : 'Full'}</div>
+                          <div className="font-bold text-gray-900 bg-white px-2 py-0.5 rounded shadow-sm text-xs border border-gray-100">Qty: {item.quantity}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+              ))}
+              {jerseyBookings.length === 0 && (
+                <div className="p-8 text-center text-gray-500 font-medium">
+                  {t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}
+                </div>
+              )}
             </div>
             <div className="mt-4 text-xs font-bold text-gray-400 flex justify-end gap-4">
               <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-gray-700">{jerseyBookings.length}</span></span>
@@ -2239,7 +2427,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             )}
             
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
@@ -2298,6 +2486,67 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View for Donations */}
+            <div className="md:hidden flex flex-col gap-4 mt-4">
+              {donations.map((donation) => (
+                <div key={`${donation.id}-mobile`} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-gray-900">{donation.name}</h3>
+                      <p className="text-sm font-bold text-gray-600">{donation.phone}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-lg font-bold text-[#FF9933]">₹{donation.amount}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 mb-3">
+                    {donation.email && (
+                      <div className="text-sm text-gray-600 flex items-center gap-1">
+                        <span className="font-bold text-gray-400 text-xs">Email:</span> {donation.email}
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-500 font-mono bg-gray-50 p-2 rounded border border-gray-100 break-all">
+                      <span className="font-bold text-gray-400 text-xs block mb-1">Trx ID:</span> 
+                      {donation.transactionId}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleToggleDonationStatus(donation.id, donation.status || 'Pending')}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-colors cursor-pointer ${
+                        donation.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                      }`}
+                    >
+                      {donation.status === 'Verified' ? 'Verified ✓' : 'Verify'}
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDownloadReceipt(donation)}
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
+                        title="Download Receipt"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDonation(donation.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-red-100"
+                        title="Delete Donation Record"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {donations.length === 0 && (
+                <div className="p-8 text-center text-gray-500 font-medium">
+                  {t('कोणतीही देणगी आढळली नाही.', 'No donations found.')}
+                </div>
+              )}
+            </div>
             <div className="mt-4 text-xs font-bold text-gray-400 flex justify-end gap-4">
               <span>{t('एकूण देणगीदार:', 'Total Donors:')} <span className="text-gray-700">{donations.length}</span></span>
               <span>{t('एकूण रक्कम:', 'Total Amount:')} <span className="text-emerald-600">₹{donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0)}</span></span>
@@ -2342,6 +2591,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', zIndex: -1 }}>
           <div id="admin-hidden-receipt">
             <Receipt ref={receiptRef} data={receiptDonation} />
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Ticket Element for html2canvas capture */}
+      {ticketBooking && (
+        <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', zIndex: -1 }}>
+          <div id="admin-hidden-ticket">
+            <JerseyTicket ref={ticketRef} data={ticketBooking} />
           </div>
         </div>
       )}

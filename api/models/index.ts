@@ -151,6 +151,7 @@ const SettingsSchema = new Schema({
   jerseyButtonTextMr: { type: String, default: 'जर्सी बुक करा' },
   jerseyButtonTextEn: { type: String, default: 'Book Jersey' },
   jerseyComingSoonVideoUrl: { type: String, default: '' },
+  jerseyDisplayImages: { type: [String], default: [] },
   updatedAt: { type: Date, default: Date.now }
 });
 

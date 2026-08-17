@@ -158,51 +158,62 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden flex flex-col">
-              {filteredAndSortedBookings.length > 0 ? (
-                filteredAndSortedBookings.map((booking) => (
-                  <div key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 p-4 space-y-3">
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-lg">{booking.name}</h4>
-                        <div className="text-sm font-bold text-gray-600 mt-0.5">{booking.phone}</div>
-                      </div>
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm shrink-0 whitespace-nowrap ${
-                          booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                        }`}
-                      >
-                        {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
-                      </span>
-                    </div>
-                    
-                    <div className="text-sm text-gray-600 font-medium bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                      <span className="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t('पत्ता', 'Address')}</span>
-                      {booking.address}
-                    </div>
+            <div className="md:hidden flex flex-col bg-gray-50/50 p-2">
+              {(() => {
+                const groupedBookings = bookings
+                  .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .filter(b => sizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(sizeFilter))))
+                  .sort((a, b) => {
+                     const dateA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
+                     const dateB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
+                     return dateB - dateA;
+                  });
 
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('प्रमाण', 'Qty')}</span>
-                        <span className="font-bold text-gray-900">{booking.quantity}</span>
+                return groupedBookings.length > 0 ? (
+                  groupedBookings.map((booking) => (
+                    <div key={`${booking.id}-mobile`} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-3 last:mb-0">
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <div>
+                          <h4 className="font-bold text-gray-900 text-lg">{booking.name}</h4>
+                          <div className="text-sm font-bold text-gray-600 mt-0.5">{booking.phone}</div>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold shadow-sm shrink-0 whitespace-nowrap ${
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                          }`}
+                        >
+                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                        </span>
                       </div>
-                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('साईझ', 'Size')}</span>
-                        <span className="font-bold text-[#FF9933]">{booking.size}</span>
+                      
+                      <div className="text-sm text-gray-600 font-medium bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-3">
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t('पत्ता', 'Address')}</span>
+                        {booking.address}
                       </div>
-                      <div className="bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg flex-1 min-w-[30%]">
-                        <span className="block text-[10px] font-bold text-gray-400 uppercase">{t('स्लीव्ह', 'Sleeve')}</span>
-                        <span className="font-bold text-gray-700">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+
+                      <div className="border border-orange-100 rounded-lg overflow-hidden">
+                        <div className="bg-orange-50 px-3 py-2 border-b border-orange-100 text-[10px] font-bold text-gray-500 uppercase flex justify-between">
+                          <span>{t('आयटम्स', 'Items')} ({(booking.items || []).reduce((s,i) => s + i.quantity, 0)})</span>
+                        </div>
+                        <div className="divide-y divide-orange-50 bg-white">
+                          {(booking.items || []).map((item, idx) => (
+                            <div key={idx} className="px-3 py-2 flex justify-between items-center text-sm">
+                              <div className="font-bold text-[#FF9933]">Size {item.size}</div>
+                              <div className="text-gray-600 text-xs font-semibold">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')} Sleeve</div>
+                              <div className="font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded text-xs">Qty {item.quantity}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="p-12 text-center flex flex-col items-center justify-center text-gray-400 bg-white rounded-xl">
+                    <Shirt className="w-12 h-12 mb-4 opacity-20" />
+                    <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
                   </div>
-                ))
-              ) : (
-                <div className="p-12 text-center flex flex-col items-center justify-center text-gray-400">
-                  <Shirt className="w-12 h-12 mb-4 opacity-20" />
-                  <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
           

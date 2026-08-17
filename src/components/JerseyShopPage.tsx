@@ -24,15 +24,19 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
   const [error, setError] = useState('');
 
   // Image Slider State
-  const jerseyImages = ['/images/Tshirt1.png', '/images/Tshirt2.png'];
+  const defaultImages = ['/images/Tshirt1.png', '/images/Tshirt2.png'];
+  const configuredImages = settings?.jerseyDisplayImages || [];
+  const jerseyImages = configuredImages.length > 0 ? configuredImages : defaultImages;
+  
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
+    if (jerseyImages.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % jerseyImages.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, []);
+  }, [jerseyImages.length]);
 
   const sizes = Array.from({ length: 21 }, (_, i) => 10 + i * 2);
 
@@ -182,12 +186,12 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
               className="flex flex-col items-center justify-center space-y-6 py-8"
             >
               {/* Ticket UI */}
-              <div id="booking-ticket" className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-w-md w-full relative">
+              <div id="booking-ticket" className="bg-[#ffffff] rounded-2xl shadow-2xl border border-[#F3F4F6] overflow-hidden max-w-md w-full relative">
                 {/* Top Perforation / Banner */}
-                <div className="bg-[#FF9933] text-white p-6 text-center relative border-b-4 border-dashed border-white/50">
+                <div className="bg-[#FF9933] text-white p-6 text-center relative border-b-4 border-dashed border-[rgba(255,255,255,0.5)]">
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#FAF8F5] rounded-full"></div>
                   
-                  <div className="w-16 h-16 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-green-500 shadow-inner">
+                  <div className="w-16 h-16 bg-[#ffffff] rounded-full mx-auto mb-3 flex items-center justify-center text-[#22C55E] shadow-inner">
                     <CheckCircle className="w-8 h-8" />
                   </div>
                   <h3 className="text-2xl font-extrabold uppercase tracking-widest">{t('बुकिंग यशस्वी!', 'Booking Successful!')}</h3>
@@ -195,53 +199,53 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                 </div>
                 
                 {/* Details Section */}
-                <div className="p-8 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-white bg-opacity-95">
-                  <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                <div className="p-8 space-y-6 bg-[#ffffff] bg-opacity-95">
+                  <div className="flex justify-between items-start border-b border-[#F3F4F6] pb-4">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('बुकिंग आयडी', 'Booking ID')}</p>
-                      <p className="text-lg font-black text-gray-900">#{successData.id.slice(-6)}</p>
+                      <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider">{t('बुकिंग आयडी', 'Booking ID')}</p>
+                      <p className="text-lg font-black text-[#111827]">#{successData.id.slice(-6)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('तारीख', 'Date')}</p>
-                      <p className="text-sm font-bold text-gray-800">{new Date().toLocaleDateString()}</p>
+                      <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider">{t('तारीख', 'Date')}</p>
+                      <p className="text-sm font-bold text-[#1F2937]">{new Date().toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">{t('ग्राहकाचे नाव', 'Customer Name')}</p>
+                    <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider mb-1">{t('ग्राहकाचे नाव', 'Customer Name')}</p>
                     <p className="text-xl font-bold text-[#111111]">{successData.name}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-2">{t('ऑर्डर तपशील', 'Order Details')}</p>
+                    <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider mb-2">{t('ऑर्डर तपशील', 'Order Details')}</p>
                     <div className="space-y-2">
                       {successData.items.map((item: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                          <span className="text-sm font-bold text-gray-700">
+                        <div key={idx} className="flex justify-between items-center bg-[#F9FAFB] p-2.5 rounded-lg border border-[#F3F4F6]">
+                          <span className="text-sm font-bold text-[#374151]">
                             Size {item.size} • {item.sleeveType === 'Half' ? 'Half' : 'Full'} Sleeve
                           </span>
-                          <span className="bg-gray-200 text-gray-800 px-2 py-0.5 rounded text-xs font-bold">Qty: {item.quantity}</span>
+                          <span className="bg-[#E5E7EB] text-[#1F2937] px-2 py-0.5 rounded text-xs font-bold">Qty: {item.quantity}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 space-y-4">
+                  <div className="pt-4 border-t border-[#F3F4F6] space-y-4">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('नोंदणीकृत फोन', 'Registered Phone')}</p>
-                      <p className="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-2 rounded-lg mt-1 inline-block">{successData.phone}</p>
+                      <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider">{t('नोंदणीकृत फोन', 'Registered Phone')}</p>
+                      <p className="text-sm font-bold text-[#1F2937] bg-[#F3F4F6] px-3 py-2 rounded-lg mt-1 inline-block">{successData.phone}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('पत्ता', 'Address')}</p>
-                      <p className="text-sm font-medium text-gray-800 bg-gray-50 px-3 py-2 rounded-lg mt-1 border border-gray-100">{successData.address}</p>
+                      <p className="text-xs text-[#6B7280] font-bold uppercase tracking-wider">{t('पत्ता', 'Address')}</p>
+                      <p className="text-sm font-medium text-[#1F2937] bg-[#F9FAFB] px-3 py-2 rounded-lg mt-1 border border-[#F3F4F6]">{successData.address}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Bottom Perforation */}
-                <div className="bg-orange-50 p-4 border-t-4 border-dashed border-gray-200 text-center relative">
+                <div className="bg-[#FFF7ED] p-4 border-t-4 border-dashed border-[#E5E7EB] text-center relative">
                   <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-8 h-8 bg-[#FAF8F5] rounded-full"></div>
-                  <p className="text-xs text-orange-800 font-bold max-w-[250px] mx-auto">
+                  <p className="text-xs text-[#9A3412] font-bold max-w-[250px] mx-auto">
                     {t('लवकरच मंडळाकडून तुमच्या फोनवर बुकिंग कन्फर्मेशनसाठी कॉल येईल.', 'A Mandal admin will call you shortly on your registered number to confirm this booking.')}
                   </p>
                 </div>
@@ -388,8 +392,43 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="pt-4 border-t border-gray-100"
+                      className="pt-4 border-t border-gray-100 space-y-4"
                     >
+                      {/* In-Step Cart Summary */}
+                      <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 space-y-3">
+                        <h3 className="text-sm font-bold text-gray-800 border-b border-orange-200 pb-2 flex justify-between items-center">
+                          <span>{t('तुमची ऑर्डर', 'Your Order')}</span>
+                          <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-md text-xs">
+                            {items.reduce((sum, item) => sum + item.quantity, 0)} {t('जर्सी', 'Jerseys')}
+                          </span>
+                        </h3>
+                        <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                          {items.map((item, index) => (
+                            <div key={item.id} className="flex items-center justify-between bg-white px-3 py-2.5 rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-orange-50">
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <span className="font-extrabold text-gray-400 text-xs sm:text-sm">{index + 1}.</span>
+                                <div className="text-xs sm:text-sm">
+                                  <span className="font-bold text-[#FF9933]">Size {item.size}</span> 
+                                  <span className="text-gray-300 mx-1 sm:mx-2">|</span>
+                                  <span className="font-semibold text-gray-700">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 sm:gap-4">
+                                <span className="text-xs font-bold bg-gray-50 text-gray-700 px-2 py-1 rounded-lg border border-gray-100">Qty: {item.quantity}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveItem(item.id)}
+                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1 sm:p-1.5 rounded-lg transition-colors"
+                                  title="Remove"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => setCheckoutStep('checkout')}
