@@ -1283,16 +1283,61 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               <div className="pt-4 border-t border-gray-100">
                 <label className="block font-bold text-gray-700 mb-2">Background Image/Video Upload</label>
-                <div className="flex items-center gap-4">
-                  <input type="file" accept="image/*,video/*" onChange={e => handleGenericFileUpload(e, url => setLocalSettings({...localSettings, heroVideoUrl: url, heroImageUrl: url}))} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" />
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {(localSettings.heroCustomImages || (localSettings.heroImageUrl ? [localSettings.heroImageUrl] : [])).map((imgUrl: string, idx: number) => (
+                    <div key={idx} className="relative">
+                      {imgUrl.match(/\.(mp4|webm|ogg|mov)$/i) || imgUrl.includes('/video/upload/') ? (
+                        <video src={imgUrl} className="w-32 h-24 object-cover rounded-xl shadow-sm border border-gray-200" autoPlay muted loop />
+                      ) : (
+                        <img src={imgUrl} className="w-32 h-24 object-cover rounded-xl shadow-sm border border-gray-200" alt={`Hero ${idx + 1}`} />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentImages = localSettings.heroCustomImages || (localSettings.heroImageUrl ? [localSettings.heroImageUrl] : []);
+                          const newImages = [...currentImages];
+                          newImages.splice(idx, 1);
+                          setLocalSettings({...localSettings, heroCustomImages: newImages, heroImageUrl: newImages.length > 0 ? newImages[0] : ''});
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow-md"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-                {localSettings.heroImageUrl && (
-                  localSettings.heroImageUrl.match(/\.(mp4|webm|ogg|mov)$/i) || localSettings.heroImageUrl.includes('/video/upload/') ? (
-                    <video src={localSettings.heroImageUrl} className="mt-4 w-64 rounded-xl shadow-md border" autoPlay muted loop controls />
-                  ) : (
-                    <img src={localSettings.heroImageUrl} alt="Hero Preview" className="mt-4 w-48 rounded-xl shadow-md border" />
-                  )
-                )}
+                <input 
+                  type="file" 
+                  accept="image/*,video/*" 
+                  multiple
+                  onChange={async e => {
+                    if (!e.target.files || e.target.files.length === 0) return;
+                    showToast('अपलोड करत आहे... (Uploading...)');
+                    const newUrls: string[] = [];
+                    for (let i = 0; i < e.target.files.length; i++) {
+                      const file = e.target.files[i];
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      try {
+                        const res = await fetch(`${API_BASE_URL}/api/upload`, {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${adminPin}` },
+                          body: formData
+                        });
+                        const data = await res.json();
+                        if (data.url) newUrls.push(data.url);
+                      } catch(e) { console.error(e) }
+                    }
+                    if (newUrls.length > 0) {
+                      const currentImages = localSettings.heroCustomImages || (localSettings.heroImageUrl ? [localSettings.heroImageUrl] : []);
+                      const combined = [...currentImages, ...newUrls];
+                      setLocalSettings({...localSettings, heroCustomImages: combined, heroImageUrl: combined[0]});
+                      showToast('फाइल्स अपलोड झाल्या (Files Uploaded)');
+                    }
+                    e.target.value = '';
+                  }} 
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" 
+                />
               </div>
                 </>
               ) : (

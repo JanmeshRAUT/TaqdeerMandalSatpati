@@ -25,21 +25,33 @@ export const HomeSection: React.FC<HomeSectionProps> = ({ setActiveTab, announce
 
   // Build Dynamic Slides from Pinned Gallery Items
   const pinnedGalleryItems = gallery.filter((g: any) => g.isHeroPinned);
-  const fallbackSlides = [
+  const customImages = settings?.heroCustomImages && settings.heroCustomImages.length > 0 
+    ? settings.heroCustomImages 
+    : (settings?.heroImageUrl ? [settings.heroImageUrl] : []);
+
+  const fallbackSlides = customImages.length > 0
+    ? customImages.map((url: string) => ({
+        url,
+        titleMr: settings?.heroTitleMr || 'मंडळाची अधिकृत जर्सी',
+        titleEn: settings?.heroTitleEn || 'Official Mandal Jersey',
+        descMr: settings?.heroSubtitleMr || 'आता बुकिंगसाठी उपलब्ध!',
+        descEn: settings?.heroSubtitleEn || 'Now available for booking!'
+      }))
+    : [
         {
-          url: settings?.heroImageUrl || '/images/Tshirt1.png',
-          titleMr: settings?.heroTitleMr || 'मंडळाची अधिकृत जर्सी',
-          titleEn: settings?.heroTitleEn || 'Official Mandal Jersey',
-          descMr: settings?.heroSubtitleMr || 'आता बुकिंगसाठी उपलब्ध!',
-          descEn: settings?.heroSubtitleEn || 'Now available for booking!'
+          url: '/images/Tshirt1.png',
+          titleMr: 'मंडळाची अधिकृत जर्सी',
+          titleEn: 'Official Mandal Jersey',
+          descMr: 'आता बुकिंगसाठी उपलब्ध!',
+          descEn: 'Now available for booking!'
         },
-        ...(!settings?.heroImageUrl ? [{
+        {
           url: '/images/Tshirt2.png',
           titleMr: 'मंडळाची अधिकृत जर्सी',
           titleEn: 'Official Mandal Jersey',
           descMr: 'आता बुकिंगसाठी उपलब्ध!',
           descEn: 'Now available for booking!'
-        }] : [])
+        }
       ];
 
   const slides = (settings?.isHeroSlideshowEnabled && pinnedGalleryItems.length > 0)
