@@ -866,6 +866,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
+  const toggleHeroPin = async (item: GalleryItem) => {
+    try {
+      const updatedItem = { ...item, isHeroPinned: !item.isHeroPinned };
+      const res = await fetch(`${API_BASE_URL}/api/gallery/${item.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(updatedItem)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setGallery(gallery.map(g => g.id === item.id ? saved : g));
+        showToast('हिरो स्लाइडशो सेटिंग अद्ययावत केली (Hero Slideshow Updated)');
+      }
+    } catch (e) {
+      showToast('त्रुटी (Error)');
+      console.error(e);
+    }
+  };
+
   const handleDeleteEvent = async (id: string) => {
     try {
       await fetch(`${API_BASE_URL}/api/events/${id}`, {
@@ -1215,21 +1237,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </button>
               </div>
 
-              <div className="flex items-center justify-between bg-gray-50 p-6 rounded-2xl border">
+              <div className="bg-gray-50 p-6 rounded-2xl border space-y-4">
                 <div>
-                  <h4 className="font-bold text-lg">{t('गॅलरी स्लाइडशो (Gallery Slideshow)', 'Gallery Slideshow')}</h4>
-                  <p className="text-gray-500 text-sm">{t('गॅलरीमधील पिन केलेले फोटो स्लाइडशो म्हणून दाखवायचे का ते ठरवा.', 'Toggle whether to show pinned gallery images as a slideshow.')}</p>
+                  <h4 className="font-bold text-lg">{t('हिरो सेक्शन प्रकार (Hero Section Type)', 'Hero Section Type')}</h4>
+                  <p className="text-gray-500 text-sm">{t('हिरो सेक्शनमध्ये काय दाखवायचे ते निवडा.', 'Choose what to display in the Hero section.')}</p>
                 </div>
-                <button 
-                  type="button"
-                  onClick={() => setLocalSettings({...localSettings, isHeroSlideshowEnabled: !localSettings.isHeroSlideshowEnabled})}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${localSettings.isHeroSlideshowEnabled ? 'bg-green-500' : 'bg-red-500'}`}
-                >
-                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${localSettings.isHeroSlideshowEnabled ? 'translate-x-7' : 'translate-x-1'}`} />
-                </button>
+                
+                <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                  <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all flex-1 ${!localSettings.isHeroSlideshowEnabled ? 'border-[#FF9933] bg-orange-50/50' : 'border-gray-200 bg-white hover:border-[#FF9933]/50'}`}>
+                    <input type="radio" name="heroType" className="w-5 h-5 accent-[#FF9933]" checked={!localSettings.isHeroSlideshowEnabled} onChange={() => setLocalSettings({...localSettings, isHeroSlideshowEnabled: false})} />
+                    <span className="font-bold text-gray-800">{t('स्वतः फोटो/व्हिडिओ अपलोड करा', 'Upload Photo/Video')}</span>
+                  </label>
+                  
+                  <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all flex-1 ${localSettings.isHeroSlideshowEnabled ? 'border-[#FF9933] bg-orange-50/50' : 'border-gray-200 bg-white hover:border-[#FF9933]/50'}`}>
+                    <input type="radio" name="heroType" className="w-5 h-5 accent-[#FF9933]" checked={localSettings.isHeroSlideshowEnabled} onChange={() => setLocalSettings({...localSettings, isHeroSlideshowEnabled: true})} />
+                    <span className="font-bold text-gray-800">{t('गॅलरीमधून निवडा (स्लाइडशो)', 'Choose from Gallery (Slideshow)')}</span>
+                  </label>
+                </div>
               </div>
 
-              {!localSettings.isHeroSlideshowEnabled && (
+              {!localSettings.isHeroSlideshowEnabled ? (
                 <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div className="space-y-4">
@@ -1268,6 +1295,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 )}
               </div>
                 </>
+              ) : (
+                <div className="pt-4 border-t border-gray-100 space-y-4">
+                  <div>
+                     <h4 className="font-bold text-gray-700">{t('हिरो स्लाइडशोसाठी फोटो निवडा', 'Select Photos for Hero Slideshow')}</h4>
+                     <p className="text-sm text-gray-500">{t('खालीलपैकी जे फोटो स्लाइडशोमध्ये दाखवायचे आहेत त्यावर क्लिक करून पिन (📌) करा.', 'Click to pin/unpin images for the hero slideshow.')}</p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-2">
+                    {gallery.map(g => (
+                      <div key={g.id} className={`relative rounded-xl overflow-hidden cursor-pointer border-4 transition-all duration-300 ${g.isHeroPinned ? 'border-[#FF9933] shadow-[0_0_15px_rgba(255,153,51,0.5)] scale-[1.02]' : 'border-transparent hover:border-gray-300'}`} onClick={() => toggleHeroPin(g)}>
+                         <img src={g.imageUrl} className="w-full h-32 object-cover" referrerPolicy="no-referrer" />
+                         <div className="absolute inset-0 bg-black/20" />
+                         {g.isHeroPinned && (
+                           <div className="absolute top-2 right-2 bg-[#FF9933] rounded-full p-1 shadow-md">
+                             <Check className="w-4 h-4 text-white" />
+                           </div>
+                         )}
+                         <div className="absolute bottom-0 w-full p-2 bg-gradient-to-t from-black/80 to-transparent">
+                           <p className="text-white text-xs font-semibold truncate">{t(g.titleMr, g.titleEn)}</p>
+                         </div>
+                      </div>
+                    ))}
+                    {gallery.length === 0 && (
+                      <p className="text-gray-500 text-sm col-span-full py-4 text-center">{t('गॅलरीमध्ये कोणतेही फोटो नाहीत.', 'No photos in the gallery.')}</p>
+                    )}
+                  </div>
+                </div>
               )}
             </form>
           )}

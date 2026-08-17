@@ -13,27 +13,18 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const flattenedBookings = bookings.flatMap(booking => 
-    (booking.items || []).map(item => ({
-      ...item,
-      bookingId: booking.id,
-      name: booking.name,
-      phone: booking.phone,
-      address: booking.address,
-      bookingDate: booking.bookingDate,
-      status: booking.status || 'Pending'
-    }))
-  );
-
-  const filteredAndSortedBookings = flattenedBookings
+  const processedBookings = bookings
     .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter(b => sizeFilter === 'all' || b.size === Number(sizeFilter))
+    .filter(b => sizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(sizeFilter))))
     .sort((a, b) => {
-      if (sortDirection === 'asc') return a.size - b.size;
-      return b.size - a.size;
+      const dateA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
+      const dateB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
     });
+
+  const totalJerseys = bookings.reduce((sum, b) => sum + (b.items || []).reduce((s, i) => s + i.quantity, 0), 0);
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] pt-24 md:pt-32 pb-20 px-3 sm:px-6 lg:px-8 font-marathi flex flex-col items-center">
@@ -98,7 +89,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
               >
                 <ArrowUpDown className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('साईझ', 'Size')}</span> ({sortDirection === 'asc' ? '↑' : '↓'})
+                <span className="hidden sm:inline">{t('तारीख', 'Date')}</span> ({sortDirection === 'asc' ? '↑' : '↓'})
               </button>
             </div>
           </div>
@@ -110,31 +101,35 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('नाव', 'Name')}</th>
-                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('फोन', 'Phone')}</th>
-                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-20 sm:w-24 text-center">{t('प्रमाण', 'Qty')}</th>
-                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-24 sm:w-32">{t('साईझ', 'Size')}</th>
-                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('स्लीव्ह', 'Sleeve')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-64">{t('आयटम्स', 'Items (Size/Sleeve/Qty)')}</th>
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-28 text-center">{t('स्थिती', 'Status')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAndSortedBookings.length > 0 ? (
-                    filteredAndSortedBookings.map((booking) => (
-                      <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
+                  {processedBookings.length > 0 ? (
+                    processedBookings.map((booking) => (
+                      <tr key={booking.id} className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors group">
                         <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#FF9933] transition-colors">{booking.name}</td>
-                        <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
                         <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-800">{booking.phone}</td>
-                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-gray-900 text-center">{booking.quantity}</td>
-                        <td className="p-4 sm:p-5 text-sm sm:text-base font-bold text-[#FF9933]">{booking.size}</td>
-                        <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium">
-                          <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 text-gray-600 whitespace-nowrap">
-                            {booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}
-                          </span>
+                        <td className="p-4 sm:p-5 text-sm sm:text-base text-gray-600 font-medium max-w-[200px] truncate" title={booking.address}>{booking.address}</td>
+                        <td className="p-4 sm:p-5">
+                          <div className="flex flex-col gap-1.5">
+                            {(booking.items || []).map((item, idx) => (
+                               <div key={idx} className="flex items-center gap-2 text-sm bg-white border border-gray-200 rounded-md px-2 py-1 shadow-sm w-fit">
+                                 <span className="font-bold text-[#FF9933]">Size {item.size}</span>
+                                 <span className="text-gray-400">|</span>
+                                 <span className="text-gray-600 font-medium">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                                 <span className="text-gray-400">|</span>
+                                 <span className="font-bold text-gray-900 bg-gray-100 px-1.5 rounded text-xs">Qty {item.quantity}</span>
+                               </div>
+                            ))}
+                          </div>
                         </td>
                         <td className="p-4 sm:p-5 text-center">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
+                            className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${
                               booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
                             }`}
                           >
@@ -145,7 +140,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="p-12 text-center">
+                      <td colSpan={5} className="p-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-400">
                           <Shirt className="w-12 h-12 mb-4 opacity-20" />
                           <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
@@ -159,18 +154,8 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
 
             {/* Mobile Card View */}
             <div className="md:hidden flex flex-col bg-gray-50/50 p-2">
-              {(() => {
-                const groupedBookings = bookings
-                  .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .filter(b => sizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(sizeFilter))))
-                  .sort((a, b) => {
-                     const dateA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
-                     const dateB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
-                     return dateB - dateA;
-                  });
-
-                return groupedBookings.length > 0 ? (
-                  groupedBookings.map((booking) => (
+              {processedBookings.length > 0 ? (
+                processedBookings.map((booking) => (
                     <div key={`${booking.id}-mobile`} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-3 last:mb-0">
                       <div className="flex justify-between items-start gap-2 mb-3">
                         <div>
@@ -212,8 +197,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                     <Shirt className="w-12 h-12 mb-4 opacity-20" />
                     <p className="font-bold text-lg text-gray-500">{t('कोणतेही बुकिंग आढळले नाही.', 'No bookings found.')}</p>
                   </div>
-                );
-              })()}
+                )}
             </div>
           </div>
           
@@ -223,7 +207,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
             </div>
             <div className="flex flex-col sm:flex-row text-xs sm:text-sm font-bold text-gray-900 bg-orange-50 px-4 py-3 rounded-xl gap-2 sm:gap-4 items-center">
               <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{bookings.length}</span></span>
-              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{flattenedBookings.reduce((sum, b) => sum + (b.quantity || 1), 0)}</span></span>
+              <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-[#FF9933] ml-1 text-sm sm:text-base">{totalJerseys}</span></span>
             </div>
           </div>
         </motion.div>
