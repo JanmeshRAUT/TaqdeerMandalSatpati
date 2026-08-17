@@ -111,7 +111,7 @@ export interface JerseyBooking {
   phone: string;
   items: JerseyBookingItem[];
   bookingDate: string;
-  status?: 'Pending' | 'Verified';
+  status?: 'Pending' | 'Verified' | 'Paid';
 }
 
 export interface DonationRecord {

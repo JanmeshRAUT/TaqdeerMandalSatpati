@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // API Base URL configuration
 // In development: Vite proxy handles /api/* -> localhost:3001
 // In production: Points to Render backend URL

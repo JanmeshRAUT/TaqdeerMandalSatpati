@@ -10,6 +10,7 @@ import {
   DirectoryMember,
   GalleryItem,
   EventScheduleItem,
+  HistoryMilestone,
   SocialActivity,
   Sponsor,
   Announcement,
@@ -32,6 +33,8 @@ interface AdminPanelProps {
   setGallery: React.Dispatch<React.SetStateAction<GalleryItem[]>>;
   events: EventScheduleItem[];
   setEvents: React.Dispatch<React.SetStateAction<EventScheduleItem[]>>;
+  milestones: HistoryMilestone[];
+  setMilestones: React.Dispatch<React.SetStateAction<HistoryMilestone[]>>;
   activities: SocialActivity[];
   setActivities: React.Dispatch<React.SetStateAction<SocialActivity[]>>;
   sponsors: Sponsor[];
@@ -55,6 +58,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   members, setMembers,
   gallery, setGallery,
   events, setEvents,
+  milestones, setMilestones,
   activities, setActivities,
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
@@ -71,7 +75,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'sponsors' | 'jersey-bookings' | 'donations' | 'backup'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'history' | 'sponsors' | 'jersey-bookings' | 'donations' | 'backup'>('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAddingOfflineDonation, setIsAddingOfflineDonation] = useState(false);
   const [verifyProgress, setVerifyProgress] = useState<{current: number, total: number, message: string} | null>(null);
@@ -122,6 +126,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [galleryUploadType, setGalleryUploadType] = useState<'upload' | 'link'>('upload');
   const [newEvent, setNewEvent] = useState({ titleMr: '', titleEn: '', date: '2026-09-14', timeMr: 'सकाळी ८.०० वा.', timeEn: '8:00 AM', categoryMr: 'आरती', categoryEn: 'Aarti', locationMr: 'सातपाटी', locationEn: 'Satpati', isImportant: false });
+
+  const [newMilestone, setNewMilestone] = useState({ year: '', titleMr: '', titleEn: '', descriptionMr: '', descriptionEn: '', imageUrl: '' });
+  const [isUploadingMilestone, setIsUploadingMilestone] = useState(false);
+
+  const handleAddMilestone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMilestone.titleMr || !newMilestone.year) return;
+    const item: HistoryMilestone = {
+      id: 'mil-' + Date.now(),
+      year: newMilestone.year,
+      titleMr: newMilestone.titleMr,
+      titleEn: newMilestone.titleEn || newMilestone.titleMr,
+      descriptionMr: newMilestone.descriptionMr,
+      descriptionEn: newMilestone.descriptionEn || newMilestone.descriptionMr,
+      imageUrl: newMilestone.imageUrl
+    };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/history`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(item)
+      });
+      const saved = await res.json();
+      setMilestones([...milestones, saved]);
+      setNewMilestone({ year: '', titleMr: '', titleEn: '', descriptionMr: '', descriptionEn: '', imageUrl: '' });
+      showToast('इतिहास जोडला (Milestone Added)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  const handleDeleteMilestone = async (id: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/history/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
+      setMilestones(milestones.filter(m => m.id !== id));
+      showToast('इतिहास डिलीट केला (Milestone Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
 
   // Jersey Booking State
   const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '' });
@@ -298,8 +346,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
-  const handleToggleJerseyBookingStatus = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'Pending' ? 'Verified' : 'Pending';
+  const handleChangeJerseyBookingStatus = async (id: string, newStatus: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/jersey-bookings/${id}`, {
         method: 'PUT',
@@ -310,7 +357,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        setJerseyBookings(jerseyBookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
+        setJerseyBookings(jerseyBookings.map(b => b.id === id ? { ...b, status: newStatus as any } : b));
         showToast('स्थिती अद्ययावत केली (Status Updated)');
       }
     } catch (err) {
@@ -2179,41 +2226,56 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('पत्ता', 'Address')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('फोन', 'Phone')}</th>
-                    <th className="p-4 text-sm font-bold text-gray-700">{t('प्रमाण', 'Qty')}</th>
-                    <th className="p-4 text-sm font-bold text-gray-700">{t('साईझ', 'Size')}</th>
-                    <th className="p-4 text-sm font-bold text-gray-700">{t('स्लीव्ह', 'Sleeve')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('ऑर्डर तपशील', 'Order Details')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-center">{t('स्थिती', 'Status')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {jerseyBookings
-                    .flatMap(b => (b.items || []).map(i => ({ ...i, bookingId: b.id, name: b.name, address: b.address, phone: b.phone, status: b.status || 'Pending' })))
                     .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
-                    .filter(b => bookingSizeFilter === 'all' || b.size === Number(bookingSizeFilter))
-                    .sort((a, b) => bookingSort === 'asc' ? a.size - b.size : b.size - a.size)
+                    .filter(b => bookingSizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(bookingSizeFilter))))
+                    .sort((a, b) => {
+                      const sizeA = a.items && a.items.length > 0 ? a.items[0].size : 0;
+                      const sizeB = b.items && b.items.length > 0 ? b.items[0].size : 0;
+                      return bookingSort === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+                    })
                     .map((booking) => (
-                    <tr key={`${booking.bookingId}-${booking.id}`} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                    <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                       <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
                       <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
                       <td className="p-4 text-sm text-gray-800 font-bold">{booking.phone}</td>
-                      <td className="p-4 text-sm text-gray-900 text-center font-bold">{booking.quantity}</td>
-                      <td className="p-4 text-sm font-bold text-[#FF9933]">{booking.size}</td>
-                      <td className="p-4 text-sm text-gray-600">{booking.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</td>
+                      <td className="p-4 text-sm">
+                        <div className="space-y-1">
+                          {(booking.items || []).map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs bg-gray-50 px-2 py-1 rounded border border-gray-100 w-max">
+                              <span className="font-bold text-[#FF9933]">Size {item.size}</span>
+                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-600">{item.sleeveType === 'Half' ? t('हाफ', 'Half') : t('फुल', 'Full')}</span>
+                              <span className="text-gray-300">|</span>
+                              <span className="font-bold text-gray-900">Qty: {item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
                       <td className="p-4 text-center">
-                        <button
-                          onClick={() => handleToggleJerseyBookingStatus(booking.bookingId, booking.status)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm transition-colors cursor-pointer ${
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                        <select
+                          value={booking.status || 'Pending'}
+                          onChange={(e) => handleChangeJerseyBookingStatus(booking.id, e.target.value)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm border focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer appearance-none ${
+                            booking.status === 'Paid' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
                           }`}
                         >
-                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
-                        </button>
+                          <option value="Pending" className="bg-white text-gray-900">Pending</option>
+                          <option value="Verified" className="bg-white text-gray-900">Verified ✓</option>
+                          <option value="Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
+                        </select>
                       </td>
                       <td className="p-4 text-right flex justify-end gap-2">
-                        {booking.status === 'Verified' && (
+                        {(booking.status === 'Verified' || booking.status === 'Paid') && (
                           <button
-                            onClick={() => handleDownloadTicket(booking.bookingId)}
+                            onClick={() => handleDownloadTicket(booking.id)}
                             className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Download Ticket"
                           >
@@ -2221,7 +2283,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           </button>
                         )}
                         <button
-                          onClick={() => handleDeleteJerseyBooking(booking.bookingId)}
+                          onClick={() => handleDeleteJerseyBooking(booking.id)}
                           className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete Entire Booking"
                         >
@@ -2254,16 +2316,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <p className="text-sm font-semibold text-gray-500">{booking.phone}</p>
                       </div>
                       <div className="flex flex-col gap-2 items-end">
-                        <button
-                          onClick={() => handleToggleJerseyBookingStatus(booking.id, booking.status)}
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors cursor-pointer ${
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        <select
+                          value={booking.status || 'Pending'}
+                          onChange={(e) => handleChangeJerseyBookingStatus(booking.id, e.target.value)}
+                          className={`px-3 py-1 rounded-xl text-[10px] font-bold border focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer appearance-none ${
+                            booking.status === 'Paid' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
                           }`}
                         >
-                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
-                        </button>
+                          <option value="Pending" className="bg-white text-gray-900">Pending</option>
+                          <option value="Verified" className="bg-white text-gray-900">Verified ✓</option>
+                          <option value="Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
+                        </select>
                         <div className="flex gap-2">
-                          {booking.status === 'Verified' && (
+                          {(booking.status === 'Verified' || booking.status === 'Paid') && (
                             <button
                               onClick={() => handleDownloadTicket(booking.id)}
                               className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
