@@ -1,0 +1,17 @@
+{
+  "name": "Takdeer Mitra Mandal",
+  "short_name": "TMM Satpati",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF9933",
+  "description": "Official application for Takdeer Mitra Mandal, Satpati",
+  "icons": [
+    {
+      "src": "/Logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
