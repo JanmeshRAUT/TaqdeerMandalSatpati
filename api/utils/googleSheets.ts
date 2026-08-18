@@ -70,7 +70,7 @@ export const updateStatusInGoogleSheet = async (
     const rows = response.data.values;
     if (!rows) return false;
 
-    const updatePromises: Promise<any>[] = [];
+    const dataToUpdate: any[] = [];
 
     rows.forEach((row, index) => {
       const rowIndex = index + 1; // 1-indexed for Sheets
@@ -78,34 +78,33 @@ export const updateStatusInGoogleSheet = async (
       if (sheetName === 'Bookings') {
         // For Bookings, ID is in Col A (index 0). Status is in Col F (index 5)
         if (row[0] === searchIdentifier) {
-          updatePromises.push(
-            sheets.spreadsheets.values.update({
-              spreadsheetId,
-              range: `${sheetName}!F${rowIndex}`,
-              valueInputOption: 'USER_ENTERED',
-              requestBody: { values: [[newStatus]] }
-            })
-          );
+          dataToUpdate.push({
+            range: `${sheetName}!F${rowIndex}`,
+            values: [[newStatus]]
+          });
         }
       } else if (sheetName === 'Donations') {
         // For Donations, transactionId is in Col J (index 9) or receiptNo in Col B (index 1)
         if (row[1] === searchIdentifier || row[9] === searchIdentifier) {
           // Status is in Col I (index 8)
-          updatePromises.push(
-            sheets.spreadsheets.values.update({
-              spreadsheetId,
-              range: `${sheetName}!I${rowIndex}`,
-              valueInputOption: 'USER_ENTERED',
-              requestBody: { values: [[newStatus]] }
-            })
-          );
+          dataToUpdate.push({
+            range: `${sheetName}!I${rowIndex}`,
+            values: [[newStatus]]
+          });
         }
       }
     });
 
-    if (updatePromises.length > 0) {
-      await Promise.all(updatePromises);
-      console.log(`Successfully updated status in Google Sheets for ${searchIdentifier}`);
+    if (dataToUpdate.length > 0) {
+      // Use batchUpdate to update all rows in a single API call safely
+      await sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          valueInputOption: 'USER_ENTERED',
+          data: dataToUpdate,
+        }
+      });
+      console.log(`Successfully updated ${dataToUpdate.length} rows status in Google Sheets for ${searchIdentifier}`);
       return true;
     }
     
