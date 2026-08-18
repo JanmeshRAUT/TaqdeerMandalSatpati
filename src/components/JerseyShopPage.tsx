@@ -17,7 +17,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
   
   const [formData, setFormData] = useState({ name: '', address: '', phone: '' });
   const [items, setItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
-  const [currentItem, setCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
+  const [currentItem, setCurrentItem] = useState({ size: 40, sleeveType: 'Half', quantity: 1 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
   const [checkoutStep, setCheckoutStep] = useState<'product' | 'checkout'>('product');
@@ -45,7 +45,7 @@ export const JerseyShopPage: React.FC<JerseyShopPageProps> = ({ bookings = [], s
       setItems([...items, { ...currentItem, id: Date.now().toString() }]);
       
       // Reset current item selections
-      setCurrentItem({ size: 10, sleeveType: 'Half', quantity: 1 });
+      setCurrentItem({ size: 40, sleeveType: 'Half', quantity: 1 });
 
       // Provide better UX on mobile by showing a toast or updating instantly
       // We no longer scroll because we use a multi-step layout.

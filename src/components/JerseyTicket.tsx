@@ -18,95 +18,112 @@ export const JerseyTicket = React.forwardRef<HTMLDivElement, JerseyTicketProps>(
   return (
     <div
       ref={ref}
-      className="relative w-[800px] min-h-[400px] h-auto bg-[#ffffff] overflow-hidden text-[#111827] flex rounded-2xl border-4 border-[#FF9933]"
-      style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}
+      className="relative w-[850px] min-h-[450px] h-auto bg-[#ffffff] text-[#111827] flex rounded-xl border border-[#E5E7EB]"
+      style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}
     >
       {/* Left section - Details */}
-      <div className="flex-1 p-8 flex flex-col justify-between relative border-r-4 border-dashed border-[#D1D5DB]">
-        <div className="absolute top-0 left-0 w-full h-2 bg-[#FF9933]"></div>
-        <div className="absolute bottom-0 left-0 w-full h-2 bg-[#FF9933]"></div>
+      <div className="flex-1 p-8 flex flex-col relative border-r-[3px] border-dashed border-[#D1D5DB] bg-gradient-to-br from-[#FFF7ED] to-[#ffffff]">
         
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-black text-[#FF9933] mb-1 tracking-tight">TAKDEER MITRA MANDAL</h1>
-            <p className="text-[#6B7280] font-bold tracking-widest text-sm uppercase">Satpati</p>
+        {/* Top/Bottom orange accent bars */}
+        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-[#FF9933] to-[#F97316] rounded-tl-xl"></div>
+        <div className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-[#FF9933] to-[#F97316] rounded-bl-xl"></div>
+        
+        {/* Header with Logo and Bappa */}
+        <div className="flex justify-between items-center border-b-2 border-[#FED7AA] pb-4 mb-6 mt-2">
+          <div className="flex items-center gap-4">
+            <img src="/LogoBGRemoved.png" alt="Logo" className="w-16 h-16 object-contain" />
+            <div>
+              <h1 className="text-3xl font-black text-[#EA580C] leading-none tracking-tight">TAKDEER MITRA MANDAL</h1>
+              <p className="text-[#9A3412] font-bold tracking-[0.2em] text-sm uppercase mt-1">Satpati, Palghar</p>
+            </div>
           </div>
-          <div className="text-right">
-            <h2 className="text-2xl font-black uppercase tracking-wider text-[#1F2937]">Jersey Ticket</h2>
-            <p className="text-sm font-mono text-[#6B7280] mt-1">{data.id.toUpperCase()}</p>
+          <div className="flex items-center gap-4 text-right">
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-widest text-[#1F2937]">Jersey Ticket</h2>
+              <p className="text-xs font-mono text-[#6B7280] mt-1 tracking-wider">{data.id.toUpperCase()}</p>
+            </div>
+            <img src="/GanapatiImg.jpeg" alt="Bappa" className="w-16 h-16 object-cover rounded-md shadow-sm border-2 border-[#FED7AA]" />
           </div>
         </div>
 
-        <div className="mt-8">
-          <div className="flex gap-12 mb-6">
-            <div>
-              <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1">Customer Name</p>
-              <p className="text-2xl font-bold text-[#111827]">{data.name}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1">Phone Number</p>
-              <p className="text-xl font-bold text-[#1F2937]">{data.phone}</p>
-            </div>
-          </div>
-
+        {/* Customer Details */}
+        <div className="flex gap-16 mb-8 pt-4 border-t border-[#F3F4F6]">
           <div>
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-2">Order Summary ({totalQuantity} Total Items)</p>
-            <div className="bg-[#FFF7ED] rounded-lg p-3 max-w-md border border-[#FFEDD5]">
-              <div className="flex font-bold text-[10px] text-[#9CA3AF] uppercase mb-2 border-b border-[#FED7AA] pb-1">
-                <div className="w-20">Size</div>
-                <div className="w-24">Sleeve</div>
-                <div className="w-16 text-center">Qty</div>
-              </div>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1 tracking-wider">Customer Name</p>
+            <p className="text-2xl font-black text-[#111827]">{data.name}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1 tracking-wider">Phone Number</p>
+            <p className="text-2xl font-black text-[#1F2937]">{data.phone}</p>
+          </div>
+        </div>
+
+        {/* Order Summary (Expands) */}
+        <div className="flex-1 mb-8">
+          <div className="flex justify-between items-end mb-3">
+            <p className="text-sm font-bold text-[#EA580C] uppercase tracking-wider">Order Summary</p>
+            <p className="text-sm font-bold text-[#C2410C]">{totalQuantity} Total Items</p>
+          </div>
+          
+          <div className="bg-white rounded-lg overflow-hidden border border-[#E5E7EB] shadow-sm">
+            <div className="flex font-black text-xs text-[#6B7280] uppercase bg-[#F9FAFB] border-b border-[#E5E7EB]">
+              <div className="flex-1 py-3 px-6 text-left">Size</div>
+              <div className="flex-1 py-3 px-6 text-center">Sleeve Type</div>
+              <div className="flex-1 py-3 px-6 text-right">Quantity</div>
+            </div>
+            <div className="flex flex-col">
               {items.map((item, idx) => (
-                <div key={idx} className="flex font-bold text-sm text-[#1F2937] mb-1 last:mb-0">
-                  <div className="w-20 text-[#FF9933]">{item.size}</div>
-                  <div className="w-24">{item.sleeveType === 'Half' ? 'Half' : 'Full'}</div>
-                  <div className="w-16 text-center">{item.quantity}</div>
+                <div key={idx} className="flex font-bold text-sm text-[#1F2937] border-b border-[#F3F4F6] last:border-0 hover:bg-[#FFF7ED] transition-colors">
+                  <div className="flex-1 py-3 px-6 text-left text-[#EA580C] text-lg">{item.size}</div>
+                  <div className="flex-1 py-3 px-6 text-center text-[#4B5563]">{item.sleeveType === 'Half' ? 'Half Sleeve' : 'Full Sleeve'}</div>
+                  <div className="flex-1 py-3 px-6 text-right text-lg">{item.quantity}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="mt-auto pt-4 flex justify-between items-end border-t border-[#F3F4F6]">
+        {/* Footer */}
+        <div className="pt-4 flex justify-between items-end">
           <div>
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1">Booking Date</p>
-            <p className="text-base font-bold text-[#374151]">{dd}/{mm}/{yyyy}</p>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase mb-1 tracking-wider">Booking Date</p>
+            <p className="text-lg font-black text-[#374151]">{dd}/{mm}/{yyyy}</p>
           </div>
           <div className="text-right">
-            <span className={`px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider ${
-              data.status === 'Verified' ? 'bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]' : 'bg-[#FEF9C3] text-[#A16207] border border-[#FDE047]'
+            <span className={`px-6 py-2 rounded-lg text-sm font-black uppercase tracking-widest shadow-sm ${
+              (data.status === 'Verified' || data.status === 'Paid') 
+                ? 'bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white' 
+                : 'bg-gradient-to-r from-[#FACC15] to-[#EAB308] text-white'
             }`}>
-              {data.status === 'Verified' ? 'Verified' : 'Pending'}
+              {data.status || 'Pending'}
             </span>
           </div>
         </div>
       </div>
 
       {/* Right section - Stub */}
-      <div className="w-[200px] bg-[#FFF7ED] p-6 flex flex-col justify-between items-center relative">
-        <div className="absolute top-0 left-0 w-full h-2 bg-[#FF9933]"></div>
-        <div className="absolute bottom-0 left-0 w-full h-2 bg-[#FF9933]"></div>
+      <div className="w-[220px] bg-[#F9FAFB] p-6 flex flex-col justify-between items-center relative rounded-r-xl">
+        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-[#F97316] to-[#FF9933] rounded-tr-xl"></div>
+        <div className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-[#F97316] to-[#FF9933] rounded-br-xl"></div>
         
-        {/* Semi-circles for the dashed line effect */}
-        <div className="absolute -left-3 top-[-10px] w-6 h-6 rounded-full bg-[#ffffff] border-b-4 border-r-4 border-[#D1D5DB] transform rotate-45 hidden"></div>
-
-        <div className="text-center w-full mt-4">
-          <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-widest mb-2">Admit One</p>
-          <div className="w-full h-24 bg-[#ffffff] border-2 border-[#E5E7EB] rounded flex items-center justify-center p-2">
-            {/* Fake Barcode */}
-            <div className="w-full h-full flex justify-between gap-0.5 opacity-60">
-              {[3,1,4,2,3,1,5,2,4,1,3,2,4,1,2,5,3,1,4,2,3,1,5,2,4,1,3,2,4,1].map((w, i) => (
-                <div key={i} className={`bg-[#000000] h-full`} style={{ width: `${w}px` }}></div>
-              ))}
-            </div>
+        <div className="text-center w-full mt-6">
+          <p className="text-xs font-black text-[#D1D5DB] uppercase tracking-[0.3em] mb-4">Scan Status</p>
+          
+          <div className="w-32 h-32 mx-auto bg-white border border-[#E5E7EB] rounded-lg flex items-center justify-center p-2 shadow-inner">
+            {/* Real QR Code linking to status */}
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`ID: ${data.id}\nStatus: ${data.status || 'Pending'}\nItems: ${totalQuantity}`)}`} 
+              alt="QR Code" 
+              className="w-full h-full object-contain mix-blend-multiply" 
+              crossOrigin="anonymous"
+            />
           </div>
-          <p className="text-[10px] font-mono text-[#9CA3AF] mt-2 tracking-widest">{data.id.substring(0, 15).toUpperCase()}</p>
+          <p className="text-[11px] font-mono font-bold text-[#9CA3AF] mt-3 tracking-widest">{data.id.substring(0, 15).toUpperCase()}</p>
         </div>
 
-        <div className="text-center">
-          <p className="text-4xl font-black text-[#FF9933] mb-1">{totalQuantity}</p>
-          <p className="text-xs font-bold text-[#6B7280] uppercase tracking-widest">Items</p>
+        <div className="text-center mb-6 mt-auto pt-8">
+          <p className="text-6xl font-black text-[#EA580C] leading-tight mb-2 drop-shadow-sm">{totalQuantity}</p>
+          <p className="text-sm font-black text-[#4B5563] uppercase tracking-[0.2em] mt-2">Items</p>
         </div>
       </div>
     </div>
