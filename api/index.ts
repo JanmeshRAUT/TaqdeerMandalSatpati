@@ -300,6 +300,26 @@ const createRouter = (Model: any) => {
         
         const newItem = new Model(cleanDonation);
         const savedItem = await newItem.save();
+        
+        // Sync to Google Sheets asynchronously
+        if (savedItem) {
+          import('./utils/googleSheets.js').then(({ appendToGoogleSheet }) => {
+            const row = [
+              savedItem.date,
+              savedItem.receiptNo || '',
+              savedItem.name || '',
+              savedItem.email || '',
+              savedItem.phone || '',
+              savedItem.address || '',
+              savedItem.details || '',
+              savedItem.amount || '',
+              savedItem.status || '',
+              savedItem.transactionId || ''
+            ];
+            appendToGoogleSheet('Donations!A:J', [row]);
+          }).catch(err => console.error('Failed to import googleSheets:', err));
+        }
+        
         return res.status(201).json(savedItem);
       }
       
@@ -331,6 +351,25 @@ const createRouter = (Model: any) => {
         
         const newItem = new Model(cleanBooking);
         const savedItem = await newItem.save();
+
+        // Sync to Google Sheets asynchronously
+        if (savedItem) {
+          import('./utils/googleSheets.js').then(({ appendToGoogleSheet }) => {
+            const rows = savedItem.items.map((itm: any) => [
+              savedItem.id,
+              savedItem.name || '',
+              savedItem.phone || '',
+              savedItem.address || '',
+              new Date(savedItem.bookingDate || Date.now()).toLocaleDateString(),
+              savedItem.status || '',
+              itm.size,
+              itm.sleeveType,
+              itm.quantity
+            ]);
+            appendToGoogleSheet('Bookings!A:I', rows);
+          }).catch(err => console.error('Failed to import googleSheets:', err));
+        }
+
         return res.status(201).json(savedItem);
       }
       
