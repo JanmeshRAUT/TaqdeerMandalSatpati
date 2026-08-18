@@ -18,7 +18,7 @@ export const JerseyTicket = React.forwardRef<HTMLDivElement, JerseyTicketProps>(
   return (
     <div
       ref={ref}
-      className="relative w-[800px] h-[400px] bg-[#ffffff] overflow-hidden text-[#111827] flex rounded-2xl border-4 border-[#FF9933]"
+      className="relative w-[800px] min-h-[400px] h-auto bg-[#ffffff] overflow-hidden text-[#111827] flex rounded-2xl border-4 border-[#FF9933]"
       style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}
     >
       {/* Left section - Details */}
