@@ -48,3 +48,70 @@ export const appendToGoogleSheet = async (
     return false;
   }
 };
+
+export const updateStatusInGoogleSheet = async (
+  sheetName: 'Bookings' | 'Donations',
+  searchIdentifier: string, // booking id or donation transactionId/receiptNo
+  newStatus: string
+): Promise<boolean> => {
+  try {
+    const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+    const auth = getAuth();
+    if (!spreadsheetId || !auth) return false;
+
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    // Fetch current data to find the row
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!A:J`,
+    });
+
+    const rows = response.data.values;
+    if (!rows) return false;
+
+    const updatePromises: Promise<any>[] = [];
+
+    rows.forEach((row, index) => {
+      const rowIndex = index + 1; // 1-indexed for Sheets
+      
+      if (sheetName === 'Bookings') {
+        // For Bookings, ID is in Col A (index 0). Status is in Col F (index 5)
+        if (row[0] === searchIdentifier) {
+          updatePromises.push(
+            sheets.spreadsheets.values.update({
+              spreadsheetId,
+              range: `${sheetName}!F${rowIndex}`,
+              valueInputOption: 'USER_ENTERED',
+              requestBody: { values: [[newStatus]] }
+            })
+          );
+        }
+      } else if (sheetName === 'Donations') {
+        // For Donations, transactionId is in Col J (index 9) or receiptNo in Col B (index 1)
+        if (row[1] === searchIdentifier || row[9] === searchIdentifier) {
+          // Status is in Col I (index 8)
+          updatePromises.push(
+            sheets.spreadsheets.values.update({
+              spreadsheetId,
+              range: `${sheetName}!I${rowIndex}`,
+              valueInputOption: 'USER_ENTERED',
+              requestBody: { values: [[newStatus]] }
+            })
+          );
+        }
+      }
+    });
+
+    if (updatePromises.length > 0) {
+      await Promise.all(updatePromises);
+      console.log(`Successfully updated status in Google Sheets for ${searchIdentifier}`);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error updating Google Sheets:', error);
+    return false;
+  }
+};

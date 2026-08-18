@@ -16,6 +16,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { JerseyBookingsView } from './components/JerseyBookingsView';
 import { JerseyShopPage } from './components/JerseyShopPage';
 import { DonationSection } from './components/DonationSection';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import API_BASE_URL from './config/api';
 
 import {
@@ -241,9 +242,13 @@ function AppContent() {
         )}
       </main>
 
-
       {/* Footer */}
-      <Footer setActiveTab={setActiveTab} />
+      <div className="pb-20 md:pb-0">
+        <Footer setActiveTab={setActiveTab} />
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
     </div>
   );

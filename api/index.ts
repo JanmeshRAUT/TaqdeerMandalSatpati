@@ -412,6 +412,19 @@ const createRouter = (Model: any) => {
       const result = await Model.findOneAndUpdate({ id: id }, req.body, { returnDocument: 'after' });
       if (!result) return res.status(404).json({ message: 'Not found' });
 
+      // Sync status update to Google Sheets
+      if (req.body.status) {
+        import('./utils/googleSheets.js').then(({ updateStatusInGoogleSheet }) => {
+          if (Model.modelName === 'JerseyBooking') {
+            updateStatusInGoogleSheet('Bookings', id, req.body.status);
+          } else if (Model.modelName === 'DonationRecord') {
+            // Find by receiptNo or transactionId
+            const searchId = result.receiptNo || result.transactionId || id;
+            updateStatusInGoogleSheet('Donations', searchId, req.body.status);
+          }
+        }).catch(err => console.error('Failed to import googleSheets for update:', err));
+      }
+
       // If it's a DonationRecord and status changed to 'Verified', we just return the result.
       // The email sending is now handled by POST /:id/send-receipt.
 
