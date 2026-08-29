@@ -19,6 +19,13 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
     .filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .filter(b => sizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(sizeFilter))))
     .sort((a, b) => {
+      const sizeA = a.items && a.items.length > 0 ? Math.max(...a.items.map(i => i.size)) : 0;
+      const sizeB = b.items && b.items.length > 0 ? Math.max(...b.items.map(i => i.size)) : 0;
+      
+      if (sizeA !== sizeB) {
+        return sortDirection === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+      }
+      
       const dateA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
       const dateB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
       return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
@@ -89,7 +96,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors shrink-0"
               >
                 <ArrowUpDown className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('तारीख', 'Date')}</span> ({sortDirection === 'asc' ? '↑' : '↓'})
+                <span className="hidden sm:inline">{t('साईझ', 'Size')}</span> ({sortDirection === 'asc' ? '↑' : '↓'})
               </button>
             </div>
           </div>
@@ -104,6 +111,7 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32 sm:w-40">{t('फोन', 'Phone')}</th>
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider">{t('पत्ता', 'Address')}</th>
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-64">{t('आयटम्स', 'Items (Size/Sleeve/Qty)')}</th>
+                    <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-32">{t('पेमेंट', 'Payment Mode')}</th>
                     <th className="p-4 sm:p-5 text-xs sm:text-sm font-extrabold text-gray-700 uppercase tracking-wider w-28 text-center">{t('स्थिती', 'Status')}</th>
                   </tr>
                 </thead>
@@ -127,13 +135,22 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                             ))}
                           </div>
                         </td>
+                        <td className="p-4 sm:p-5">
+                          {booking.paymentMode ? (
+                            <span className="text-sm font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded">{booking.paymentMode}</span>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
                         <td className="p-4 sm:p-5 text-center">
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm whitespace-nowrap ${
-                              booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                              booking.status === 'Fully Paid' ? 'bg-green-100 text-green-700 border border-green-200' : 
+                              booking.status === 'Verified' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 
+                              'bg-yellow-100 text-yellow-700 border border-yellow-200'
                             }`}
                           >
-                            {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                            {booking.status === 'Fully Paid' ? 'Fully Paid ✓' : booking.status === 'Verified' ? 'Verified' : 'Pending'}
                           </span>
                         </td>
                       </tr>
@@ -164,12 +181,20 @@ export const JerseyBookingsView: React.FC<JerseyBookingsViewProps> = ({ bookings
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-[10px] font-bold shadow-sm shrink-0 whitespace-nowrap ${
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+                            booking.status === 'Fully Paid' ? 'bg-green-100 text-green-700 border border-green-200' : 
+                            booking.status === 'Verified' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 
+                            'bg-yellow-100 text-yellow-700 border border-yellow-200'
                           }`}
                         >
-                          {booking.status === 'Verified' ? 'Verified ✓' : 'Pending'}
+                          {booking.status === 'Fully Paid' ? 'Fully Paid ✓' : booking.status === 'Verified' ? 'Verified' : 'Pending'}
                         </span>
                       </div>
+                      
+                      {booking.paymentMode && (
+                        <div className="text-sm font-bold text-gray-700 mb-2">
+                          {t('पेमेंट मोड:', 'Payment Mode:')} <span className="text-[#FF9933]">{booking.paymentMode}</span>
+                        </div>
+                      )}
                       
                       <div className="text-sm text-gray-600 font-medium bg-gray-50 p-2.5 rounded-lg border border-gray-100 mb-3">
                         <span className="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">{t('पत्ता', 'Address')}</span>

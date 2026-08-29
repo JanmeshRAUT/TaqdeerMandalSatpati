@@ -108,7 +108,8 @@ const JerseyBookingSchema = new Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   address: { type: String, required: true },
-  phone: { type: String, required: true },
+  phone: { type: String, required: false },
+  paymentMode: { type: String, required: false },
   items: [JerseyBookingItemSchema],
   bookingDate: { type: String, required: true },
   status: { type: String, default: 'Pending' } // 'Pending' or 'Verified'

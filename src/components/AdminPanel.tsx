@@ -172,7 +172,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   // Jersey Booking State
-  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '' });
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '', paymentMode: '' });
   const [newJerseyItems, setNewJerseyItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
   const [newJerseyCurrentItem, setNewJerseyCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [bookingSearch, setBookingSearch] = useState('');
@@ -313,6 +313,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       name: newJerseyBooking.name.trim(),
       address: newJerseyBooking.address.trim(),
       phone: newJerseyBooking.phone.trim(),
+      paymentMode: newJerseyBooking.paymentMode.trim(),
       items: newJerseyItems,
       bookingDate: new Date().toISOString()
     };
@@ -327,7 +328,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
-      setNewJerseyBooking({ name: '', address: '', phone: '' });
+      setNewJerseyBooking({ name: '', address: '', phone: '', paymentMode: '' });
       setNewJerseyItems([]);
       showToast('जर्सी बुकिंग जोडली (Booking Added)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -2201,7 +2202,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 />
               </div>
 
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-1">
                 <label className="block font-semibold mb-1">फोन (Phone)</label>
                 <input
                   type="text"
@@ -2209,6 +2210,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   value={newJerseyBooking.phone}
                   onChange={(e) => setNewJerseyBooking({...newJerseyBooking, phone: e.target.value})}
                   className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div className="sm:col-span-1">
+                <label className="block font-semibold mb-1">पेमेंट मोड (Payment Mode)</label>
+                <input
+                  type="text"
+                  value={newJerseyBooking.paymentMode}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, paymentMode: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                  placeholder="Cash / GPay"
                 />
               </div>
             </div>
@@ -2324,6 +2336,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <th className="p-4 text-sm font-bold text-gray-700">{t('नाव', 'Name')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('पत्ता', 'Address')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('फोन', 'Phone')}</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">{t('पेमेंट', 'Payment Mode')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700">{t('ऑर्डर तपशील', 'Order Details')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-center">{t('स्थिती', 'Status')}</th>
                     <th className="p-4 text-sm font-bold text-gray-700 text-right">{t('क्रिया', 'Action')}</th>
@@ -2343,6 +2356,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
                       <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
                       <td className="p-4 text-sm text-gray-800 font-bold">{booking.phone}</td>
+                      <td className="p-4 text-sm text-gray-800 font-bold">{booking.paymentMode || '-'}</td>
                       <td className="p-4 text-sm">
                         <div className="space-y-1">
                           {(booking.items || []).map((item, idx) => (
@@ -2361,17 +2375,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           value={booking.status || 'Pending'}
                           onChange={(e) => handleChangeJerseyBookingStatus(booking.id, e.target.value)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm border focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer appearance-none ${
-                            booking.status === 'Paid' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                            booking.status === 'Fully Paid' ? 'bg-green-100 text-green-700 border-green-200' :
+                            booking.status === 'Verified' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
                           }`}
                         >
                           <option value="Pending" className="bg-white text-gray-900">Pending</option>
                           <option value="Verified" className="bg-white text-gray-900">Verified ✓</option>
-                          <option value="Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
+                          <option value="Fully Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
                         </select>
                       </td>
                       <td className="p-4 text-right flex justify-end gap-2">
-                        {(booking.status === 'Verified' || booking.status === 'Paid') && (
+                        {(booking.status === 'Verified' || booking.status === 'Fully Paid') && (
                           <button
                             onClick={() => handleDownloadTicket(booking.id)}
                             className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
@@ -2412,22 +2426,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <div>
                         <h3 className="font-bold text-gray-900 text-lg">{booking.name}</h3>
                         <p className="text-sm font-semibold text-gray-500">{booking.phone}</p>
+                        {booking.paymentMode && <p className="text-sm font-bold text-[#FF9933] mt-0.5">Payment: {booking.paymentMode}</p>}
                       </div>
                       <div className="flex flex-col gap-2 items-end">
                         <select
                           value={booking.status || 'Pending'}
                           onChange={(e) => handleChangeJerseyBookingStatus(booking.id, e.target.value)}
                           className={`px-3 py-1 rounded-xl text-[10px] font-bold border focus:outline-none focus:ring-2 focus:ring-[#FF9933]/50 transition-colors cursor-pointer appearance-none ${
-                            booking.status === 'Paid' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                            booking.status === 'Verified' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                            booking.status === 'Fully Paid' ? 'bg-green-100 text-green-700 border-green-200' :
+                            booking.status === 'Verified' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200'
                           }`}
                         >
                           <option value="Pending" className="bg-white text-gray-900">Pending</option>
                           <option value="Verified" className="bg-white text-gray-900">Verified ✓</option>
-                          <option value="Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
+                          <option value="Fully Paid" className="bg-white text-gray-900">Fully Paid ✓✓</option>
                         </select>
                         <div className="flex gap-2">
-                          {(booking.status === 'Verified' || booking.status === 'Paid') && (
+                          {(booking.status === 'Verified' || booking.status === 'Fully Paid') && (
                             <button
                               onClick={() => handleDownloadTicket(booking.id)}
                               className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"

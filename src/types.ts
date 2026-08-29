@@ -109,9 +109,10 @@ export interface JerseyBooking {
   name: string;
   address: string;
   phone: string;
+  paymentMode?: string;
   items: JerseyBookingItem[];
   bookingDate: string;
-  status?: 'Pending' | 'Verified' | 'Paid';
+  status?: 'Pending' | 'Verified' | 'Fully Paid';
 }
 
 export interface DonationRecord {
