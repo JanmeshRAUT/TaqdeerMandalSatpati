@@ -2275,12 +2275,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <Plus className="w-4 h-4 text-[#FF9933]" />
                 <span>{t('नवीन जर्सी बुकिंग जोडा', 'Add Jersey Booking')}</span>
               </h3>
-              <div className="flex gap-2">
-                <button type="button" onClick={handleDownloadJerseyBookingsExcel} className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200 border border-green-200 flex items-center gap-1">
+              <div className="flex gap-2 flex-wrap justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="bg-[#111827] hover:bg-black text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition-colors text-xs shadow-sm whitespace-nowrap"
+                >
+                  <ScanLine className="w-3.5 h-3.5" />
+                  स्कॅन करा (Scan)
+                </button>
+                <button type="button" onClick={handleDownloadJerseyBookingsExcel} className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-bold hover:bg-green-200 border border-green-200 flex items-center gap-1 whitespace-nowrap">
                   <Download className="w-3.5 h-3.5" /> Download Excel
                 </button>
-                <button type="button" onClick={() => handleDownloadTemplate('JerseyBookings', ['name', 'phone', 'address', 'totalAmount', 'status', 'items_json_string'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200">Download Template</button>
-                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1">
+                <button type="button" onClick={() => handleDownloadTemplate('JerseyBookings', ['name', 'phone', 'address', 'totalAmount', 'status', 'items_json_string'])} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-200 border border-blue-200 whitespace-nowrap">Download Template</button>
+                <label className="cursor-pointer px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-200 border border-emerald-200 flex items-center gap-1 whitespace-nowrap">
                   <Upload className="w-3.5 h-3.5" /> Bulk Upload
                   <input type="file" accept=".csv, .xlsx" className="hidden" onChange={(e) => handleBulkUpload(e, 'jersey-bookings', (row) => ({ name: row.name || '', phone: row.phone ? String(row.phone) : '', address: row.address || '', totalAmount: Number(row.totalAmount) || 0, status: row.status || 'Pending', items: row.items_json_string ? JSON.parse(row.items_json_string) : [] }))} />
                 </label>
