@@ -110,9 +110,8 @@ export const JerseyTicket = React.forwardRef<HTMLDivElement, JerseyTicketProps>(
           <p className="text-xs font-black text-[#D1D5DB] uppercase tracking-[0.3em] mb-4">Scan Status</p>
           
           <div className="w-32 h-32 mx-auto bg-white border border-[#E5E7EB] rounded-lg flex items-center justify-center p-2 shadow-inner">
-            {/* Real QR Code linking to status */}
             <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`ID: ${data.id}\nStatus: ${data.status || 'Pending'}\nItems: ${totalQuantity}`)}`} 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.id)}`} 
               alt="QR Code" 
               className="w-full h-full object-contain mix-blend-multiply" 
               crossOrigin="anonymous"

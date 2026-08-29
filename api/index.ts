@@ -7,7 +7,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import connectDB from './config/db.js';
 import {
   Announcement, CommitteeMember, DirectoryMember, GalleryItem,
-  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor, JerseyBooking, Settings, DonationRecord
+  EventScheduleItem, HistoryMilestone, SocialActivity, Sponsor, JerseyBooking, Settings, DonationRecord, FinanceRecord
 } from './models/index.js';
 import nodemailer from 'nodemailer';
 import { numberToMarathiWords } from './utils/numberToMarathiWords.js';
@@ -536,6 +536,7 @@ app.use('/api/activities', createRouter(SocialActivity));
 app.use('/api/sponsors', createRouter(Sponsor));
 app.use('/api/jersey-bookings', createRouter(JerseyBooking));
 app.use('/api/donations', createRouter(DonationRecord));
+app.use('/api/finance', createRouter(FinanceRecord));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

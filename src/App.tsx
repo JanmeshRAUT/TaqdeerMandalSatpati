@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
-import { NavTab, JerseyBooking, DonationRecord } from './types';
+import { NavTab, JerseyBooking, DonationRecord, FinanceRecord } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeSection } from './components/HomeSection';
@@ -59,6 +59,7 @@ function AppContent() {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [jerseyBookings, setJerseyBookings] = useState<JerseyBooking[]>([]);
   const [donations, setDonations] = useState<DonationRecord[]>([]);
+  const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -69,7 +70,7 @@ function AppContent() {
       if (adminPin) {
         headers['Authorization'] = `Bearer ${adminPin}`;
       }
-      const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes, donRes] = await Promise.all([
+      const [annRes, comRes, memRes, galRes, evtRes, milRes, actRes, spoRes, jerRes, setRes, donRes, finRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/announcements`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/committee`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/members`, { headers }).then(r => r.json()),
@@ -80,7 +81,8 @@ function AppContent() {
         fetch(`${API_BASE_URL}/api/sponsors`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/jersey-bookings`, { headers }).then(r => r.json()),
         fetch(`${API_BASE_URL}/api/settings`, { headers }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/donations`, { headers }).then(r => r.json())
+        fetch(`${API_BASE_URL}/api/donations`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE_URL}/api/finance`, { headers }).then(r => r.json())
       ]);
       setAnnouncements(Array.isArray(annRes) ? annRes : []);
       setCommittee(Array.isArray(comRes) ? comRes : []);
@@ -92,6 +94,7 @@ function AppContent() {
       setSponsors(Array.isArray(spoRes) ? spoRes : []);
       setJerseyBookings(Array.isArray(jerRes) ? jerRes : []);
       setDonations(Array.isArray(donRes) ? donRes : []);
+      setFinanceRecords(Array.isArray(finRes) ? finRes : []);
       setSettings(setRes || {});
       setIsBackendConnected(true);
     } catch (error) {
@@ -231,6 +234,8 @@ function AppContent() {
             setJerseyBookings={setJerseyBookings}
             donations={donations}
             setDonations={setDonations}
+            financeRecords={financeRecords}
+            setFinanceRecords={setFinanceRecords}
             settings={settings}
             setSettings={setSettings}
             refetchData={fetchData}

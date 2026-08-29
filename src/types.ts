@@ -110,9 +110,11 @@ export interface JerseyBooking {
   address: string;
   phone: string;
   paymentMode?: string;
+  amountPaid?: number;
   items: JerseyBookingItem[];
   bookingDate: string;
   status?: 'Pending' | 'Verified' | 'Fully Paid';
+  isDelivered?: boolean;
 }
 
 export interface DonationRecord {
@@ -123,9 +125,20 @@ export interface DonationRecord {
   address?: string;
   details?: string;
   amount: number | string;
-  transactionId: string;
+  transactionId?: string;
+  receiptNo?: string;
   date: string;
   status?: 'Pending' | 'Verified';
+}
+
+export interface FinanceRecord {
+  id: string;
+  date: string;
+  description: string;
+  category: 'Income' | 'Expense';
+  amount: number;
+  paymentMode: string;
+  notes?: string;
 }
 
 export type NavTab = 

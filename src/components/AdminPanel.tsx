@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { Receipt } from './Receipt';
 import { JerseyTicket } from './JerseyTicket';
+import { QRScannerModal } from './QRScannerModal';
 import API_BASE_URL from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import {
@@ -15,11 +16,12 @@ import {
   Sponsor,
   Announcement,
   JerseyBooking,
-  DonationRecord
+  DonationRecord,
+  FinanceRecord
 } from '../types';
 import { 
   Lock, Key, Shield, Plus, Trash2, Edit3, Save, RotateCcw, Download, Upload, 
-  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check, Shirt, Search, ArrowUpDown, IndianRupee, Mail, UserPlus, X 
+  Megaphone, Users, UserCheck, Image as ImageIcon, Calendar, HeartHandshake, Award, Check, Shirt, Search, ArrowUpDown, IndianRupee, Mail, UserPlus, X, ScanLine 
 } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -43,6 +45,8 @@ interface AdminPanelProps {
   setJerseyBookings: React.Dispatch<React.SetStateAction<JerseyBooking[]>>;
   donations: DonationRecord[];
   setDonations: React.Dispatch<React.SetStateAction<DonationRecord[]>>;
+  financeRecords: FinanceRecord[];
+  setFinanceRecords: React.Dispatch<React.SetStateAction<FinanceRecord[]>>;
   settings: any;
   setSettings: (settings: any) => void;
   refetchData: () => void;
@@ -63,6 +67,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   sponsors, setSponsors,
   jerseyBookings, setJerseyBookings,
   donations, setDonations,
+  financeRecords, setFinanceRecords,
   settings,
   setSettings,
   refetchData,
@@ -75,11 +80,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'history' | 'sponsors' | 'jersey-bookings' | 'donations' | 'backup'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'hero' | 'jersey-config' | 'announcements' | 'committee' | 'members' | 'gallery' | 'events' | 'history' | 'sponsors' | 'jersey-bookings' | 'donations' | 'finance' | 'backup'>('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAddingOfflineDonation, setIsAddingOfflineDonation] = useState(false);
   const [verifyProgress, setVerifyProgress] = useState<{current: number, total: number, message: string} | null>(null);
   const [offlineDonationData, setOfflineDonationData] = useState({ name: '', phone: '', email: '', amount: '', details: '', address: '' });
+  
+  // QR Scanner State
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannedBooking, setScannedBooking] = useState<JerseyBooking | null>(null);
+  const [isScannerProcessing, setIsScannerProcessing] = useState(false);
+
+  // Finance State
+  const [newFinanceRecord, setNewFinanceRecord] = useState({ description: '', category: 'Income' as 'Income' | 'Expense', amount: '', paymentMode: 'Cash', notes: '' });
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -172,7 +185,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   // Jersey Booking State
-  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '', paymentMode: '' });
+  const [newJerseyBooking, setNewJerseyBooking] = useState({ name: '', address: '', phone: '', paymentMode: '', amountPaid: 0 });
   const [newJerseyItems, setNewJerseyItems] = useState<{ id: string, size: number, sleeveType: string, quantity: number }[]>([]);
   const [newJerseyCurrentItem, setNewJerseyCurrentItem] = useState({ size: 10, sleeveType: 'Half', quantity: 1 });
   const [bookingSearch, setBookingSearch] = useState('');
@@ -314,6 +327,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       address: newJerseyBooking.address.trim(),
       phone: newJerseyBooking.phone.trim(),
       paymentMode: newJerseyBooking.paymentMode.trim(),
+      amountPaid: newJerseyBooking.amountPaid,
       items: newJerseyItems,
       bookingDate: new Date().toISOString()
     };
@@ -328,7 +342,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       });
       const saved = await res.json();
       setJerseyBookings([...jerseyBookings, saved]);
-      setNewJerseyBooking({ name: '', address: '', phone: '', paymentMode: '' });
+      setNewJerseyBooking({ name: '', address: '', phone: '', paymentMode: '', amountPaid: 0 });
       setNewJerseyItems([]);
       showToast('जर्सी बुकिंग जोडली (Booking Added)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
@@ -889,6 +903,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
+  // QR Scanner Handlers
+  const handleScanResult = (decodedText: string) => {
+    // Lookup booking by ID
+    const booking = jerseyBookings.find(b => b.id.toLowerCase() === decodedText.toLowerCase());
+    if (booking) {
+      setScannedBooking(booking);
+    } else {
+      // If not found, check if it's an old QR format with ID inside text
+      showToast('तिकीट आढळले नाही (Ticket Not Found)');
+    }
+  };
+
+  const handleMarkDelivered = async () => {
+    if (!scannedBooking) return;
+    setIsScannerProcessing(true);
+    
+    try {
+      const updatedBooking = { ...scannedBooking, isDelivered: true };
+      const res = await fetch(`${API_BASE_URL}/api/jersey-bookings/${scannedBooking.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(updatedBooking)
+      });
+      
+      if (res.ok) {
+        setJerseyBookings(jerseyBookings.map(b => b.id === scannedBooking.id ? updatedBooking : b));
+        setScannedBooking(updatedBooking);
+        showToast('डिलिव्हरी यशस्वीरित्या अपडेट केली (Delivery Updated)');
+      }
+    } catch (e) {
+      showToast('त्रुटी (Error updating delivery)');
+      console.error(e);
+    } finally {
+      setIsScannerProcessing(false);
+    }
+  };
+
   const handleDeleteEvent = async (id: string) => {
     try {
       await fetch(`${API_BASE_URL}/api/events/${id}`, {
@@ -899,6 +953,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       });
       setEvents(events.filter(e => e.id !== id));
       showToast('कार्यक्रम डिलीट केला (Event Deleted)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  // Finance Handlers
+  const handleAddFinanceRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFinanceRecord.description || !newFinanceRecord.amount) return;
+
+    const item: FinanceRecord = {
+      id: 'fin-' + Date.now(),
+      date: new Date().toISOString(),
+      description: newFinanceRecord.description,
+      category: newFinanceRecord.category,
+      amount: Number(newFinanceRecord.amount),
+      paymentMode: newFinanceRecord.paymentMode,
+      notes: newFinanceRecord.notes
+    };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/finance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminPin}`
+        },
+        body: JSON.stringify(item)
+      });
+      const saved = await res.json();
+      setFinanceRecords([saved, ...financeRecords]);
+      setNewFinanceRecord({ description: '', category: 'Income', amount: '', paymentMode: 'Cash', notes: '' });
+      showToast('जमा-खर्च नोंद जोडली (Finance Record Added)');
+    } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
+  };
+
+  const handleDeleteFinanceRecord = async (id: string) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/finance/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${adminPin}`
+        }
+      });
+      setFinanceRecords(financeRecords.filter(f => f.id !== id));
+      showToast('रेकॉर्ड डिलीट केला (Record Deleted)');
     } catch (e) { showToast('त्रुटी (Error)'); console.error(e); }
   };
 
@@ -921,6 +1018,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     addSheet(activities, "Activities");
     addSheet(sponsors, "Sponsors");
     addSheet(donations, "Donations");
+    addSheet(financeRecords, "Finance");
     
     // Flatten Jersey Bookings slightly for better Excel view
     const flatBookings = jerseyBookings.map(b => ({
@@ -1199,6 +1297,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           >
             <IndianRupee className="w-4 h-4" />
             <span>{t('देणगी यादी', 'Donations List')}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('finance')}
+            className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-3 transition-all ${
+              activeTab === 'finance' ? 'bg-[#FF9933] text-white shadow-md' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <IndianRupee className="w-4 h-4" />
+            <span>{t('जमा-खर्च (Finance)', 'Finance')}</span>
           </button>
 
           <button
@@ -2223,6 +2331,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   placeholder="Cash / GPay"
                 />
               </div>
+
+              <div className="sm:col-span-1">
+                <label className="block font-semibold mb-1">भरलेली रक्कम (Amount Paid)</label>
+                <input
+                  type="number"
+                  value={newJerseyBooking.amountPaid}
+                  onChange={(e) => setNewJerseyBooking({...newJerseyBooking, amountPaid: Number(e.target.value)})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-4">
@@ -2352,11 +2470,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       return bookingSort === 'asc' ? sizeA - sizeB : sizeB - sizeA;
                     })
                     .map((booking) => (
-                    <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                      <td className="p-4 text-sm font-medium text-gray-900">{booking.name}</td>
+                    <tr key={booking.id} className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors ${booking.isDelivered ? 'bg-blue-50/30' : ''}`}>
+                      <td className="p-4 text-sm font-medium text-gray-900">{booking.name}
+                        {booking.isDelivered && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">Delivered</span>}
+                      </td>
                       <td className="p-4 text-sm text-gray-600 max-w-[150px] truncate" title={booking.address}>{booking.address}</td>
                       <td className="p-4 text-sm text-gray-800 font-bold">{booking.phone}</td>
-                      <td className="p-4 text-sm text-gray-800 font-bold">{booking.paymentMode || '-'}</td>
+                      <td className="p-4 text-sm text-gray-800 font-bold">
+                        <div>{booking.paymentMode || '-'}</div>
+                        <div className="text-xs font-semibold text-[#FF9933]">₹{booking.amountPaid || 0}</div>
+                      </td>
                       <td className="p-4 text-sm">
                         <div className="space-y-1">
                           {(booking.items || []).map((item, idx) => (
@@ -2421,8 +2544,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 .filter(b => b.name.toLowerCase().includes(bookingSearch.toLowerCase()))
                 .filter(b => bookingSizeFilter === 'all' || (b.items && b.items.some(i => i.size === Number(bookingSizeFilter))))
                 .map((booking) => (
-                  <div key={`${booking.id}-mobile`} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
+                  <div key={`${booking.id}-mobile`} className={`bg-white border ${booking.isDelivered ? 'border-blue-300' : 'border-gray-200'} rounded-xl p-4 shadow-sm relative overflow-hidden`}>
+                    {booking.isDelivered && (
+                      <div className="absolute -right-6 top-3 bg-blue-100 text-blue-700 text-[10px] font-bold px-8 py-0.5 rotate-45 shadow-sm">
+                        Delivered
+                      </div>
+                    )}
+                    <div className="flex justify-between items-start mb-3 pr-6">
                       <div>
                         <h3 className="font-bold text-gray-900 text-lg">{booking.name}</h3>
                         <p className="text-sm font-semibold text-gray-500">{booking.phone}</p>
@@ -2480,9 +2608,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               )}
             </div>
-            <div className="mt-4 text-xs font-bold text-gray-400 flex justify-end gap-4">
+            <div className="mt-4 text-xs font-bold text-gray-400 flex flex-wrap justify-end gap-x-6 gap-y-2">
               <span>{t('एकूण ऑर्डर्स:', 'Total Orders:')} <span className="text-gray-700">{jerseyBookings.length}</span></span>
               <span>{t('एकूण जर्सी:', 'Total Jerseys:')} <span className="text-gray-700">{jerseyBookings.reduce((sum, b) => sum + (b.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0)}</span></span>
+              <span>{t('एकूण जमा रक्कम:', 'Total Collected:')} <span className="text-green-600 font-extrabold text-sm">₹{jerseyBookings.reduce((sum, b) => sum + (b.amountPaid || 0), 0)}</span></span>
+              <span>{t('अपेक्षित रक्कम:', 'Total Expected:')} <span className="text-[#FF9933] font-extrabold text-sm">₹{jerseyBookings.reduce((sum, b) => sum + (b.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0) * 350}</span></span>
             </div>
           </div>
         </div>
@@ -2498,27 +2628,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <IndianRupee className="w-5 h-5 text-[#FF9933]" />
                   {t('देणगी रेकॉर्ड्स (Donations Records)', 'Donation Records')}
                 </h3>
-                {verifyProgress && (
-                  <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200 min-w-[200px]">
-                    <div className="w-4 h-4 border-2 border-gray-200 border-t-[#FF9933] rounded-full animate-spin shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="text-[10px] font-bold text-gray-700">{verifyProgress.message}</div>
-                      {verifyProgress.total > 1 && (
-                        <div className="h-1 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                          <div 
-                            className="h-full bg-[#FF9933] transition-all duration-300"
-                            style={{ width: `${(verifyProgress.current / verifyProgress.total) * 100}%` }}
-                          ></div>
-                        </div>
-                      )}
-                    </div>
-                    {verifyProgress.total > 1 && (
-                      <div className="text-[10px] font-bold text-gray-500 shrink-0">
-                        {verifyProgress.current}/{verifyProgress.total}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
@@ -2734,6 +2843,166 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
+      {/* TAB CONTENT: FINANCE */}
+      {activeTab === 'finance' && (
+        <div className="space-y-6">
+          <form onSubmit={handleAddFinanceRecord} className="bg-[#FAF8F5] p-6 rounded-2xl border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-gray-900 flex items-center gap-2 mb-4">
+              <Plus className="w-4 h-4 text-[#FF9933]" />
+              <span>{t('नवीन जमा-खर्च नोंद करा', 'Add New Transaction')}</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+              <div className="sm:col-span-2">
+                <label className="block font-semibold mb-1">तपशील (Description)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="उदा. मंडप खर्च / देणगी"
+                  value={newFinanceRecord.description}
+                  onChange={(e) => setNewFinanceRecord({...newFinanceRecord, description: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">प्रकार (Category)</label>
+                <select
+                  value={newFinanceRecord.category}
+                  onChange={(e) => setNewFinanceRecord({...newFinanceRecord, category: e.target.value as any})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                >
+                  <option value="Income">जमा (Income)</option>
+                  <option value="Expense">खर्च (Expense)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">रक्कम (Amount)</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={newFinanceRecord.amount}
+                  onChange={(e) => setNewFinanceRecord({...newFinanceRecord, amount: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold mb-1">पेमेंट मोड (Payment Mode)</label>
+                <select
+                  value={newFinanceRecord.paymentMode}
+                  onChange={(e) => setNewFinanceRecord({...newFinanceRecord, paymentMode: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                >
+                  <option value="Cash">रोकड (Cash)</option>
+                  <option value="UPI">UPI / GPay / PhonePe</option>
+                  <option value="Bank Transfer">बँक ट्रान्सफर (Bank Transfer)</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2 md:col-span-3">
+                <label className="block font-semibold mb-1">अतिरिक्त माहिती (Notes - Optional)</label>
+                <input
+                  type="text"
+                  value={newFinanceRecord.notes}
+                  onChange={(e) => setNewFinanceRecord({...newFinanceRecord, notes: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-300 bg-white"
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-xs shadow-xs">
+              {t('जतन करा', 'Save Record')}
+            </button>
+          </form>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <IndianRupee className="w-5 h-5 text-[#FF9933]" />
+              {t('जमा-खर्च तपशील (Ledger)', 'Ledger Details')}
+            </h3>
+
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="p-4 text-sm font-bold text-gray-700">तारीख (Date)</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">तपशील (Description)</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-center">प्रकार (Type)</th>
+                    <th className="p-4 text-sm font-bold text-gray-700">मोड (Mode)</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-right">रक्कम (Amount)</th>
+                    <th className="p-4 text-sm font-bold text-gray-700 text-right">कृती (Action)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {financeRecords.map((record) => (
+                    <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4 text-sm text-gray-600">{new Date(record.date).toLocaleDateString()}</td>
+                      <td className="p-4 text-sm font-medium text-gray-900">
+                        {record.description}
+                        {record.notes && <div className="text-xs text-gray-400 mt-0.5">{record.notes}</div>}
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                          record.category === 'Income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {record.category === 'Income' ? 'जमा (In)' : 'खर्च (Out)'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-600">{record.paymentMode}</td>
+                      <td className={`p-4 text-right font-bold ${record.category === 'Income' ? 'text-green-600' : 'text-red-600'}`}>
+                        {record.category === 'Income' ? '+' : '-'} ₹{record.amount}
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDeleteFinanceRecord(record.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors inline-block"
+                          title="Delete Record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {financeRecords.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500 font-medium">
+                        कोणतीही नोंद आढळली नाही. (No records found.)
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-x-8 gap-y-4 pt-4 border-t border-gray-200">
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-bold text-gray-500">एकूण जमा (Total Income)</span>
+                <span className="text-lg font-black text-green-600">
+                  ₹{financeRecords.filter(r => r.category === 'Income').reduce((s, r) => s + Number(r.amount), 0)}
+                </span>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs font-bold text-gray-500">एकूण खर्च (Total Expense)</span>
+                <span className="text-lg font-black text-red-600">
+                  ₹{financeRecords.filter(r => r.category === 'Expense').reduce((s, r) => s + Number(r.amount), 0)}
+                </span>
+              </div>
+              <div className="flex flex-col items-end pl-4 border-l-2 border-gray-200">
+                <span className="text-xs font-bold text-gray-800">शिल्लक (Balance)</span>
+                <span className={`text-2xl font-black ${
+                  (financeRecords.filter(r => r.category === 'Income').reduce((s, r) => s + Number(r.amount), 0) - financeRecords.filter(r => r.category === 'Expense').reduce((s, r) => s + Number(r.amount), 0)) >= 0 ? 'text-blue-600' : 'text-red-600'
+                }`}>
+                  ₹{financeRecords.filter(r => r.category === 'Income').reduce((s, r) => s + Number(r.amount), 0) - financeRecords.filter(r => r.category === 'Expense').reduce((s, r) => s + Number(r.amount), 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB CONTENT 7: RESET DATA */}
       {activeTab === 'backup' && (
         <div className="p-8 rounded-2xl bg-red-50 border border-red-200 text-center space-y-4">
@@ -2782,6 +3051,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
       )}
+
+      {/* QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => {
+          setIsScannerOpen(false);
+          setScannedBooking(null);
+        }}
+        onScanResult={handleScanResult}
+        bookingData={scannedBooking}
+        onMarkDelivered={handleMarkDelivered}
+        isProcessing={isScannerProcessing}
+      />
 
     </div>
   );

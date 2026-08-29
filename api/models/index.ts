@@ -110,9 +110,11 @@ const JerseyBookingSchema = new Schema({
   address: { type: String, required: true },
   phone: { type: String, required: false },
   paymentMode: { type: String, required: false },
+  amountPaid: { type: Number, default: 0 },
   items: [JerseyBookingItemSchema],
   bookingDate: { type: String, required: true },
-  status: { type: String, default: 'Pending' } // 'Pending' or 'Verified'
+  status: { type: String, default: 'Pending' }, // 'Pending' or 'Verified'
+  isDelivered: { type: Boolean, default: false }
 });
 
 const DonationRecordSchema = new Schema({
@@ -129,6 +131,16 @@ const DonationRecordSchema = new Schema({
   status: { type: String, default: 'Pending' }
 });
 
+const FinanceRecordSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  date: { type: String, required: true },
+  description: { type: String, required: true },
+  category: { type: String, required: true }, // 'Income' or 'Expense'
+  amount: { type: Number, required: true },
+  paymentMode: { type: String, required: true },
+  notes: { type: String }
+});
+
 export const CommitteeMember = mongoose.model('CommitteeMember', CommitteeMemberSchema);
 export const DirectoryMember = mongoose.model('DirectoryMember', DirectoryMemberSchema);
 export const GalleryItem = mongoose.model('GalleryItem', GalleryItemSchema);
@@ -139,6 +151,7 @@ export const Sponsor = mongoose.model('Sponsor', SponsorSchema);
 export const Announcement = mongoose.model('Announcement', AnnouncementSchema);
 export const JerseyBooking = mongoose.model('JerseyBooking', JerseyBookingSchema);
 export const DonationRecord = mongoose.model('DonationRecord', DonationRecordSchema);
+export const FinanceRecord = mongoose.model('FinanceRecord', FinanceRecordSchema);
 
 const SettingsSchema = new Schema({
   heroTitleMr: { type: String, default: 'श्री सार्वजनिक गणेशोत्सव' },
