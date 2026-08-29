@@ -141,7 +141,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
                 <div>
                   <span className="text-gray-500 font-bold text-xs block mb-1">मागणी (Order Items)</span>
                   <div className="space-y-1">
-                    {bookingData.items.map((item, idx) => (
+                    {(bookingData.items || []).map((item, idx) => (
                       <div key={idx} className="flex justify-between bg-white px-3 py-2 rounded border border-gray-100 shadow-sm">
                         <span className="font-bold text-[#FF9933]">{item.size}</span>
                         <span className="text-xs text-gray-500 mt-0.5">{item.sleeveType === 'Half' ? 'Half' : 'Full'} Sleeve</span>
